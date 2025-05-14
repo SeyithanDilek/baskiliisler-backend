@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/bis
-    username: bis
-    password: bis
+    url: jdbc:postgresql://db.pomdpczbxfzvqqebfiau.supabase.co:5432/postgres/bis
+    username: postgres
+    password: Baskiliisler
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -28,5 +28,5 @@ logging:
     org.hibernate.type.descriptor.sql: TRACE
 
 jwt:
-  secret: verysecretdevstring
+  secret: 4b8d7f89e4123cafe7e01a2b9c65f013af45d12fbeef1187c7fa8934e0b3dd13
   expiration: 30m
