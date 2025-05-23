@@ -11,7 +11,6 @@ public record BrandRequestDto(
         String name,
 
         @Email(message = "Geçerli bir e-posta girin")
-
         String contactEmail,
 
         @NotBlank(message = "Telefon numarası boş olamaz")

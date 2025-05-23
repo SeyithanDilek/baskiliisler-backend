@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
@@ -81,7 +82,7 @@ class JwtFilterTest {
 
     @Test
     @DisplayName("Authorization header olmadığında")
-    void whenNoAuthorizationHeader_thenContinueChain() throws Exception {
+    void whenNoAuthorizationHeader_thenReturnUnauthorized() throws Exception {
         // given
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(null);
 
@@ -89,13 +90,14 @@ class JwtFilterTest {
         jwtFilter.doFilterInternal(request, response, filterChain);
 
         // then
-        verify(filterChain).doFilter(request, response);
+        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+        verify(filterChain, never()).doFilter(request, response);
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
 
     @Test
     @DisplayName("Geçersiz JWT token formatı ile istek yapıldığında")
-    void whenInvalidTokenFormat_thenContinueChain() throws Exception {
+    void whenInvalidTokenFormat_thenReturnUnauthorized() throws Exception {
         // given
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("InvalidTokenFormat");
 
@@ -103,23 +105,44 @@ class JwtFilterTest {
         jwtFilter.doFilterInternal(request, response, filterChain);
 
         // then
-        verify(filterChain).doFilter(request, response);
+        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+        verify(filterChain, never()).doFilter(request, response);
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
 
     @Test
     @DisplayName("JWT token parse edilemediğinde")
-    void whenTokenParsingFails_thenThrowException() throws Exception {
+    void whenTokenParsingFails_thenReturnUnauthorized() throws Exception {
         // given
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(TEST_TOKEN);
         when(jwtUtil.parse(anyString())).thenThrow(new RuntimeException("Token parsing failed"));
 
-        // when & then
-        try {
-            jwtFilter.doFilterInternal(request, response, filterChain);
-        } catch (Exception e) {
-            assertThat(e).hasMessageContaining("Token parsing failed");
-        }
+        // when
+        jwtFilter.doFilterInternal(request, response, filterChain);
+
+        // then
+        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+        verify(filterChain, never()).doFilter(request, response);
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    }
+
+    @Test
+    @DisplayName("Kullanıcı bulunamadığında")
+    void whenUserNotFound_thenReturnUnauthorized() throws Exception {
+        // given
+        Claims mockClaims = mock(Claims.class);
+        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(TEST_TOKEN);
+        when(jwtUtil.parse(anyString())).thenReturn(mockClaims);
+        when(mockClaims.getSubject()).thenReturn(testUser.getId().toString());
+        when(mockClaims.get("role", String.class)).thenReturn(testUser.getRole().name());
+        when(userRepository.existsById(testUser.getId())).thenReturn(false);
+
+        // when
+        jwtFilter.doFilterInternal(request, response, filterChain);
+
+        // then
+        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+        verify(filterChain, never()).doFilter(request, response);
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
 } 

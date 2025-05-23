@@ -1,0 +1,24 @@
+package com.baskiliisler.backend.model;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import lombok.*;
+
+@Entity
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Factory {
+    @Id
+    @GeneratedValue
+    private Long id;
+    @Column(nullable = false, unique = true) private String name;
+    private String address;
+    private Integer dailyCapacity;          // opsiyonel
+
+    @Builder.Default
+    private boolean active = true;
+}

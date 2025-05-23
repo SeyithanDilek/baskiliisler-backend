@@ -17,7 +17,7 @@ public class ProcessHistory {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private BrandProcess process;
 
-    @Enumerated(EnumType.STRING) @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private ProcessStatus fromStatus;
 
     @Enumerated(EnumType.STRING) @Column(nullable = false)
@@ -29,7 +29,7 @@ public class ProcessHistory {
     @Column(nullable = false)
     private java.time.LocalDateTime changedAt;
 
-    @Column(columnDefinition = "jsonb")
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "TEXT")
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
     private String payload;
 }

@@ -6,16 +6,15 @@ import com.baskiliisler.backend.dto.BrandUpdateDto;
 import com.baskiliisler.backend.mapper.BrandMapper;
 import com.baskiliisler.backend.model.Brand;
 import com.baskiliisler.backend.model.BrandProcess;
-import com.baskiliisler.backend.repository.BrandProcessRepository;
 import com.baskiliisler.backend.repository.BrandRepository;
 import com.baskiliisler.backend.type.ProcessStatus;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -23,29 +22,33 @@ import java.util.List;
 public class BrandService {
 
     private final BrandRepository brandRepository;
-    private final BrandProcessRepository processRepository;
+    private final BrandProcessService brandProcessService;
+    private final BrandProcessHistoryService brandProcessHistoryService;
+    private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    private final Validator validator = factory.getValidator();
 
+    @Transactional
     public Brand createBrand(BrandRequestDto dto) {
-        brandRepository.findByName(dto.name()).ifPresent(b -> {
-            throw new IllegalArgumentException("Bu marka zaten mevcut.");
-        });
 
-        Brand brand = BrandMapper.toEntity(dto);
-        Brand saved = brandRepository.save(brand);
+        var violations = validator.validate(dto);
+        if (!violations.isEmpty()) {
+            throw new IllegalArgumentException("Geçersiz e-posta formatı");
+        }
 
-        createAndSaveBrandProcess(saved);
+        brandRepository.findByName(dto.name())
+                .ifPresent(b -> { throw new IllegalArgumentException("Marka zaten var"); });
 
-        return saved;
-    }
+        Brand brand = brandRepository.save(BrandMapper.toEntity(dto));
+        
+        BrandProcess process = brandProcessService.createBrandProcess(brand);
+        
+        brandProcessHistoryService.saveProcessHistoryForChangeStatus(
+                process,
+                ProcessStatus.INIT,
+                null,
+                "{\"brandId\":" + brand.getId() + "}");
 
-    private void createAndSaveBrandProcess(Brand saved) {
-        BrandProcess process = BrandProcess.builder()
-                .brand(saved)
-                .status(ProcessStatus.SAMPLE_LEFT)
-                .updatedAt(LocalDateTime.now())
-                .build();
-
-        processRepository.save(process);
+        return brand;
     }
 
     public List<Brand> getAllBrands() {
@@ -55,14 +58,17 @@ public class BrandService {
     public BrandDetailDto findById(Long id) {
         Brand brand = brandRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Brand not found"));
-        ProcessStatus status = processRepository.findByBrandId(id)
-                .map(BrandProcess::getStatus)
-                .orElse(null);
+        ProcessStatus status = brandProcessService.getProcessStatus(brand.getId());
         return BrandMapper.toDetailDto(brand, status);
     }
 
     @Transactional
     public BrandDetailDto updateBrand(Long id, BrandUpdateDto dto) {
+        var violations = validator.validate(dto);
+        if (!violations.isEmpty()) {
+            throw new IllegalArgumentException("Geçersiz e-posta formatı");
+        }
+
         Brand brand = brandRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Brand not found"));
 
@@ -72,15 +78,13 @@ public class BrandService {
         }
 
         BrandMapper.updateEntity(dto, brand);
-        ProcessStatus status = processRepository.findByBrandId(id)
-                .map(BrandProcess::getStatus)
-                .orElse(null);
+        ProcessStatus status = brandProcessService.getProcessStatus(brand.getId());
         return BrandMapper.toDetailDto(brand, status);
     }
 
     @Transactional
     public void deleteBrand(Long id) {
-        if (processRepository.existsByBrandId(id)) {
+        if (brandProcessService.existsBrandProcess(id)) {
             throw new IllegalStateException("Süreç devam ediyor, marka silinemez");
         }
         brandRepository.deleteById(id);

@@ -3,10 +3,11 @@ package com.baskiliisler.backend.config;
 import com.baskiliisler.backend.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -14,12 +15,12 @@ import java.util.Date;
 
 @Component
 public class JwtUtil {
-    private final String secret;
+    private final SecretKey key;
     private final Duration expiration;
 
     public JwtUtil(@Value("${jwt.secret}") String secret,
                   @Value("${jwt.expiration}") String expiration) {
-        this.secret = secret;
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expiration = Duration.parse("PT" + expiration.toUpperCase());
     }
 
@@ -29,14 +30,16 @@ public class JwtUtil {
                 .claim("role", user.getRole().name())
                 .setIssuedAt(new Date())
                 .setExpiration(Date.from(Instant.now().plus(expiration)))
-                .signWith(SignatureAlgorithm.HS256, secret.getBytes(StandardCharsets.UTF_8))
+                .signWith(key)
                 .compact();
     }
 
     public Claims parse(String token) {
-        return Jwts.parser()
-                .setSigningKey(secret.getBytes(StandardCharsets.UTF_8))
-                .parseClaimsJws(token).getBody();
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }
 
