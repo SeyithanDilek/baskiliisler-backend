@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: baskili-isler-backend
+    env: docker
+    image:
+      url: docker.io/seight0/baskili-isler-backend:latest
+    healthCheckPath: "/actuator/health"
+    envVars:
+      - key: DATABASE_URL
+        value: jdbc:postgresql://baskiliisler-baskiliisler.d.aivencloud.com:14549/defaultdb?sslmode=require
+      - key: DATABASE_USERNAME
+        value: avnadmin
+      - key: DATABASE_PASSWORD
+        value: AVNS_cFGK5rlTGxFz9KBaivY
+      - key: JWT_SECRET
+        value: myVerySecureJwtSecretKey123456789012345678901234567890
+      - key: JWT_EXPIRATION
+        value: 24H
+      - key: SPRING_PROFILES_ACTIVE
+        value: production
+      - key: PORT
+        value: 8088 
