@@ -1,28 +1,32 @@
-version: "3.9"
+version: '3.8'
 
 services:
-  db:
-    image: postgres:14
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  # Spring Boot Application
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: baskili-isler-backend
     ports:
-      - "5432:5432"
-    volumes:            #
-      - pgdata:/var/lib/postgresql/data
-
-  pgadmin:
-    image: dpage/pgadmin4:7
-    depends_on:
-      - db
+      - "8088:8088"
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    ports:
-      - "5050:80"
-    restart: unless-stopped
+      - SPRING_PROFILES_ACTIVE=docker
+      - DATABASE_URL=jdbc:postgresql://baskiliisler-baskiliisler.d.aivencloud.com:14549/defaultdb?sslmode=require
+      - DATABASE_USERNAME=avnadmin
+      - DATABASE_PASSWORD=AVNS_cFGK5rlTGxFz9KBaivY
+      - DDL_AUTO=validate
+      - LOG_LEVEL=INFO
+      - JWT_SECRET=myVerySecureJwtSecretKey123456789012345678901234567890
+      - JWT_EXPIRATION=24H
+    networks:
+      - baskili-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
-volumes:
-  pgdata:
+networks:
+  baskili-network:
+    driver: bridge

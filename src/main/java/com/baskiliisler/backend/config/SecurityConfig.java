@@ -33,7 +33,10 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/auth/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**").permitAll()
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/api-docs/**",
+                                "/actuator/health").permitAll()
                         .requestMatchers(
                                 "/brands/**").hasAnyRole("ADMIN", "REP")
                         .anyRequest().authenticated())

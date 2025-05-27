@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://db.pomdpczbxfzvqqebfiau.supabase.co:5432/postgres/bis
-    username: postgres
-    password: Baskiliisler
+    url: jdbc:postgresql://baskiliisler-baskiliisler.d.aivencloud.com:14549/defaultdb?sslmode=require
+    username: avnadmin
+    password: AVNS_cFGK5rlTGxFz9KBaivY
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -12,6 +12,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
 
   flyway:
@@ -20,6 +21,18 @@ spring:
 
 server:
   port: 8088
+
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operationsSorter: alpha
+    tagsSorter: alpha
+    displayRequestDuration: true
+  show-actuator: true
 
 logging:
   level:

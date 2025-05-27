@@ -1,0 +1,46 @@
+# Maven build çıktıları
+target/
+!target/*.jar
+
+# IDE dosyaları
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS dosyaları
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docker dosyaları
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Log dosyaları
+*.log
+logs/
+
+# Temporary dosyalar
+*.tmp
+*.temp
+
+# Node modules (eğer frontend varsa)
+node_modules/
+
+# Test coverage
+coverage/
+
+# Environment dosyaları
+.env
+.env.local
+.env.production
+
+# Documentation
+README.md
+docs/ 

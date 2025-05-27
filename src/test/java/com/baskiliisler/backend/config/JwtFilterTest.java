@@ -64,6 +64,7 @@ class JwtFilterTest {
     void whenValidJwtToken_thenSetAuthentication() throws Exception {
         // given
         Claims mockClaims = mock(Claims.class);
+        when(request.getRequestURI()).thenReturn("/api/brands"); // protected endpoint
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(TEST_TOKEN);
         when(jwtUtil.parse(anyString())).thenReturn(mockClaims);
         when(mockClaims.getSubject()).thenReturn(testUser.getId().toString());
@@ -84,6 +85,7 @@ class JwtFilterTest {
     @DisplayName("Authorization header olmadığında")
     void whenNoAuthorizationHeader_thenReturnUnauthorized() throws Exception {
         // given
+        when(request.getRequestURI()).thenReturn("/api/brands"); // protected endpoint
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(null);
 
         // when
@@ -99,6 +101,7 @@ class JwtFilterTest {
     @DisplayName("Geçersiz JWT token formatı ile istek yapıldığında")
     void whenInvalidTokenFormat_thenReturnUnauthorized() throws Exception {
         // given
+        when(request.getRequestURI()).thenReturn("/api/brands"); // protected endpoint
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("InvalidTokenFormat");
 
         // when
@@ -114,6 +117,7 @@ class JwtFilterTest {
     @DisplayName("JWT token parse edilemediğinde")
     void whenTokenParsingFails_thenReturnUnauthorized() throws Exception {
         // given
+        when(request.getRequestURI()).thenReturn("/api/brands"); // protected endpoint
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(TEST_TOKEN);
         when(jwtUtil.parse(anyString())).thenThrow(new RuntimeException("Token parsing failed"));
 
@@ -131,6 +135,7 @@ class JwtFilterTest {
     void whenUserNotFound_thenReturnUnauthorized() throws Exception {
         // given
         Claims mockClaims = mock(Claims.class);
+        when(request.getRequestURI()).thenReturn("/api/brands"); // protected endpoint
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(TEST_TOKEN);
         when(jwtUtil.parse(anyString())).thenReturn(mockClaims);
         when(mockClaims.getSubject()).thenReturn(testUser.getId().toString());
@@ -143,6 +148,21 @@ class JwtFilterTest {
         // then
         verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
         verify(filterChain, never()).doFilter(request, response);
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    }
+
+    @Test
+    @DisplayName("Public endpoint'e istek yapıldığında JWT kontrolü bypass edilir")
+    void whenPublicEndpoint_thenBypassJwtValidation() throws Exception {
+        // given
+        when(request.getRequestURI()).thenReturn("/auth/login"); // public endpoint
+
+        // when
+        jwtFilter.doFilterInternal(request, response, filterChain);
+
+        // then
+        verify(filterChain).doFilter(request, response);
+        verify(response, never()).setStatus(anyInt());
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
 } 

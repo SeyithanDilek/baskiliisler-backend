@@ -6,6 +6,7 @@ import com.baskiliisler.backend.dto.BrandResponseDto;
 import com.baskiliisler.backend.dto.BrandUpdateDto;
 import com.baskiliisler.backend.mapper.BrandMapper;
 import com.baskiliisler.backend.service.BrandService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import static java.util.stream.Collectors.toList;
 @RestController
 @RequestMapping("/brands")
 @RequiredArgsConstructor
+@Tag(name = "Brand Management", description = "Marka yönetimi API'leri")
 public class BrandController {
 
     private final BrandService brandService;
