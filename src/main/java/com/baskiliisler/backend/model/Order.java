@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor @AllArgsConstructor
 public class Order {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     /** Sipariş, kabul edilmiş tek bir teklife bağlıdır */

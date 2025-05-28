@@ -13,12 +13,12 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class Product {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false, unique = true, length = 100)
-    private String code;                    // “PAP_CUP_M” vb.
-    private String name;                    // “Orta Karton Bardak”
-    private String unit;                    // “adet”, “kg”
+    private String code;                    // "PAP_CUP_M" vb.
+    private String name;                    // "Orta Karton Bardak"
+    private String unit;                    // "adet", "kg"
     @Column(nullable = false)
     private BigDecimal unitPrice;           // Teklif için taban fiyat
     @Builder.Default

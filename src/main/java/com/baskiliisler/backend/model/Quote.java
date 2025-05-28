@@ -18,7 +18,7 @@ import java.util.List;
 @Table(name = "quotes")
 public class Quote {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     /* ------------ İlişkiler ------------ */

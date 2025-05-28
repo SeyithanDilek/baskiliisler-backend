@@ -16,7 +16,7 @@ spring:
       
   jpa:
     hibernate:
-      ddl-auto: update  # Supabase'de update kullanabiliriz
+      ddl-auto: update
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: false
@@ -30,6 +30,11 @@ spring:
         connection:
           provider_disables_autocommit: true
           auto_commit: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        id:
+          new_generator_mappings: false
+          db_structure_naming_strategy: legacy
+        default_schema: public
         
   # Actuator minimal
   management:

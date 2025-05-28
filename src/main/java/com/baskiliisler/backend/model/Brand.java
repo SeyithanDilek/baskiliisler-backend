@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "brands")
 public class Brand {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, unique = true)
