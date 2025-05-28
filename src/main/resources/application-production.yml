@@ -2,7 +2,7 @@ spring:
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://aws-0-us-east-2.pooler.supabase.com:6543/postgres?sslmode=require}
     username: ${DATABASE_USERNAME:postgres.nzpbfnqhnujvugsvuyer}
-    password: ${DATABASE_PASSWORD}
+    password: ${DATABASE_PASSWORD:Baskiliisler}
     hikari:
       # Supabase Connection Pooler için optimize edilmiş ayarlar
       maximum-pool-size: 10       # Pooler ile daha yüksek limit
@@ -60,7 +60,7 @@ app:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:myVerySecureJwtSecretKey123456789012345678901234567890}
   expiration: ${JWT_EXPIRATION:24H}
 
 # Minimal Logging
