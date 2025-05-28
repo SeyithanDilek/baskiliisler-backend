@@ -3,10 +3,22 @@ services:
     name: baskili-isler-backend
     env: docker
     image:
-      url: docker.io/seight0/baskili-isler-backend:v14-hibernate-fix
+      url: docker.io/seight0/baskili-isler-backend:v15-final
     healthCheckPath: "/actuator/health"
     # Resource limits - Supabase için optimize edilmiş
     plan: starter  # Render'ın en küçük planı
     envVars:
+      - key: DATABASE_URL
+        value: jdbc:postgresql://aws-0-us-east-2.pooler.supabase.com:6543/postgres?sslmode=require
+      - key: DATABASE_USERNAME
+        value: postgres.nzpbfnqhnujvugsvuyer
+      - key: DATABASE_PASSWORD
+        value: Baskiliisler
+      - key: JWT_SECRET
+        value: myVerySecureJwtSecretKey123456789012345678901234567890
+      - key: JWT_EXPIRATION
+        value: 24H
       - key: SPRING_PROFILES_ACTIVE
-        value: production 
+        value: production
+      - key: PORT
+        value: 8088
