@@ -59,8 +59,6 @@ public class OpenApiConfig {
     }
     
     private List<Server> getServerList() {
-        // Render/Production ortamında PORT env var set edilir (8088)
-        // Local'de genelde port belirlenmez veya farklı değerlerdir
         String port = System.getenv("PORT");
         
         if (port != null && "8088".equals(port)) {
