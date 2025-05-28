@@ -17,9 +17,6 @@ import java.util.List;
 @Configuration
 public class OpenApiConfig {
 
-    @Value("${server.port:8088}")
-    private String serverPort;
-
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
@@ -59,25 +56,10 @@ public class OpenApiConfig {
     }
     
     private List<Server> getServerList() {
-        String port = System.getenv("PORT");
-        
-        if (port != null && "8088".equals(port)) {
-            // Render Production - sadece production URL
-            return List.of(
-                    new Server()
-                            .url("https://baskili-isler-backend.onrender.com")
-                            .description("🌐 Production Server")
-            );
-        } else {
-            // Local Development
-            return List.of(
-                    new Server()
-                            .url("http://localhost:" + serverPort)
-                            .description("🏠 Local Development Server"),
-                    new Server()
-                            .url("https://baskili-isler-backend.onrender.com")
-                            .description("🌐 Production Server")
-            );
-        }
+        return List.of(
+                new Server()
+                        .url("https://baskili-isler-backend.onrender.com")
+                        .description("🌐 Production Server")
+        );
     }
 } 
