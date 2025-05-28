@@ -3,7 +3,7 @@ services:
     name: baskili-isler-backend
     env: docker
     image:
-      url: docker.io/seight0/baskili-isler-backend:v5-swagger-fix
+      url: docker.io/seight0/baskili-isler-backend:v7-ultimate
     healthCheckPath: "/actuator/health"
     # Resource limits - Supabase için optimize edilmiş
     plan: starter  # Render'ın en küçük planı
@@ -21,6 +21,4 @@ services:
       - key: SPRING_PROFILES_ACTIVE
         value: production
       - key: PORT
-        value: 8088
-      - key: APP_BASE_URL
-        value: https://baskili-isler-backend.onrender.com 
+        value: 8088 
