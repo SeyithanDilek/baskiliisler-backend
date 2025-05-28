@@ -1,18 +1,18 @@
 spring:
   datasource:
-    url: jdbc:postgresql://aws-0-us-east-2.pooler.supabase.com:6543/postgres?sslmode=require
+    url: jdbc:postgresql://aws-0-us-east-2.pooler.supabase.com:6543/postgres?sslmode=require&prepareThreshold=0
     username: postgres.nzpbfnqhnujvugsvuyer
     password: Baskiliisler
     hikari:
       # Supabase Connection Pooler için optimize edilmiş ayarlar
-      maximum-pool-size: 10       # Pooler ile daha yüksek limit
-      minimum-idle: 2             # Minimum idle connection
+      maximum-pool-size: 5       # Pooler ile daha yüksek limit
+      minimum-idle: 1             # Minimum idle connection
       connection-timeout: 20000   # 20 saniye connection timeout
       idle-timeout: 300000        # 5 dakika idle timeout
       max-lifetime: 1800000       # 30 dakika max lifetime
       leak-detection-threshold: 60000  # 1 dakika leak detection
       pool-name: BaskiliIslerHikariCP
-      auto-commit: false          # AutoCommit'i manual kapat
+      auto-commit: true          # AutoCommit'i manual kapat
       
   jpa:
     hibernate:
@@ -28,13 +28,15 @@ spring:
         order_inserts: true
         order_updates: true
         connection:
-          provider_disables_autocommit: true
-          auto_commit: false
+          provider_disables_autocommit: false
+          auto_commit: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
         id:
           new_generator_mappings: false
           db_structure_naming_strategy: legacy
         default_schema: public
+        hbm2ddl:
+          auto: update
         
   # Actuator minimal
   management:
