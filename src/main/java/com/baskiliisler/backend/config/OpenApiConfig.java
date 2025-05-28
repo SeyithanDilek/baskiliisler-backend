@@ -19,6 +19,9 @@ public class OpenApiConfig {
 
     @Value("${server.port:8088}")
     private String serverPort;
+    
+    @Value("${app.base-url:}")
+    private String baseUrl;
 
     @Bean
     public OpenAPI customOpenAPI() {
@@ -47,13 +50,7 @@ public class OpenApiConfig {
                         .license(new License()
                                 .name("MIT License")
                                 .url("https://opensource.org/licenses/MIT")))
-                .servers(List.of(
-                        new Server()
-                                .url("http://localhost:" + serverPort)
-                                .description("🏠 Local Development Server"),
-                        new Server()
-                                .url("https://api.baskiliisler.com")
-                                .description("🌐 Production Server")))
+                .servers(getServerList())
                 .components(new Components()
                         .addSecuritySchemes("Bearer Authentication", new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)
@@ -62,5 +59,29 @@ public class OpenApiConfig {
                                 .description("JWT token gereklidir. Format: Bearer {token}")))
                 .addSecurityItem(new SecurityRequirement()
                         .addList("Bearer Authentication"));
+    }
+    
+    private List<Server> getServerList() {
+        // Production (Render) server öncelikli
+        if (baseUrl != null && !baseUrl.isEmpty()) {
+            return List.of(
+                    new Server()
+                            .url(baseUrl)
+                            .description("🌐 Production Server (Render)"),
+                    new Server()
+                            .url("http://localhost:" + serverPort)
+                            .description("🏠 Local Development Server")
+            );
+        } else {
+            // Local development
+            return List.of(
+                    new Server()
+                            .url("http://localhost:" + serverPort)
+                            .description("🏠 Local Development Server"),
+                    new Server()
+                            .url("https://baskili-isler-backend.onrender.com")
+                            .description("🌐 Production Server (Render)")
+            );
+        }
     }
 } 
