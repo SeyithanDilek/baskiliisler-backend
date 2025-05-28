@@ -40,7 +40,20 @@ spring:
     endpoint:
       health:
         show-details: never
-        
+
+# SpringDoc/Swagger Production Config
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operationsSorter: alpha
+    tagsSorter: alpha
+    displayRequestDuration: true
+  show-actuator: false
+
 # App Configuration
 app:
   base-url: ${APP_BASE_URL:}

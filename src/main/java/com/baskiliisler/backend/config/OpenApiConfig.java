@@ -13,9 +13,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
+import java.util.ArrayList;
 
 @Configuration
 public class OpenApiConfig {
+
+    @Value("${spring.profiles.active:default}")
+    private String activeProfile;
 
     @Bean
     public OpenAPI customOpenAPI() {
@@ -56,10 +60,25 @@ public class OpenApiConfig {
     }
     
     private List<Server> getServerList() {
-        return List.of(
-                new Server()
-                        .url("https://baskili-isler-backend.onrender.com")
-                        .description("🌐 Production Server")
-        );
+        List<Server> servers = new ArrayList<>();
+        
+        // Production ortamında önce production server'ı ekle
+        if ("production".equals(activeProfile)) {
+            servers.add(new Server()
+                    .url("https://baskili-isler-backend.onrender.com")
+                    .description("🌐 Production Server"));
+        } else {
+            // Development ortamında önce localhost'u ekle
+            servers.add(new Server()
+                    .url("http://localhost:8088")
+                    .description("🏠 Local Development Server"));
+            
+            // Production server'ı da ekle (test için)
+            servers.add(new Server()
+                    .url("https://baskili-isler-backend.onrender.com")
+                    .description("🌐 Production Server"));
+        }
+        
+        return servers;
     }
 } 
