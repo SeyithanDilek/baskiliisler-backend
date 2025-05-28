@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://aws-0-us-east-2.pooler.supabase.com:6543/postgres?sslmode=require}
-    username: ${DATABASE_USERNAME:postgres.nzpbfnqhnujvugsvuyer}
-    password: ${DATABASE_PASSWORD:Baskiliisler}
+    url: jdbc:postgresql://aws-0-us-east-2.pooler.supabase.com:6543/postgres?sslmode=require
+    username: postgres.nzpbfnqhnujvugsvuyer
+    password: Baskiliisler
     hikari:
       # Supabase Connection Pooler için optimize edilmiş ayarlar
       maximum-pool-size: 10       # Pooler ile daha yüksek limit
@@ -56,12 +56,12 @@ springdoc:
 
 # App Configuration
 app:
-  base-url: ${APP_BASE_URL:}
+  base-url: ""
 
-# JWT Configuration
+# JWT Configuration - Hardcoded values
 jwt:
-  secret: ${JWT_SECRET:myVerySecureJwtSecretKey123456789012345678901234567890}
-  expiration: ${JWT_EXPIRATION:24H}
+  secret: myVerySecureJwtSecretKey123456789012345678901234567890
+  expiration: 24H
 
 # Minimal Logging
 logging:
@@ -76,7 +76,7 @@ logging:
 
 # Server configuration
 server:
-  port: ${PORT:8088}
+  port: 8088
   error:
     include-message: never
     include-binding-errors: never
