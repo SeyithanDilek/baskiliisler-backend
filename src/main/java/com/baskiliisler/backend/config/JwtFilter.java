@@ -1,6 +1,7 @@
 package com.baskiliisler.backend.config;
 
 import com.baskiliisler.backend.repository.UserRepository;
+import com.baskiliisler.backend.security.JwtService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
+    private final JwtService jwtService;
     private final UserRepository userRepo;
 
     @Override
@@ -49,7 +50,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = header.substring(7);
 
         try {
-            Claims claims = jwtUtil.parse(token);
+            Claims claims = jwtService.parse(token);
             Long userId = Long.valueOf(claims.getSubject());
             String role = claims.get("role", String.class);
 

@@ -13,6 +13,11 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        id:
+          new_generator_mappings: true
+          db_structure_naming_strategy: single
+        hbm2ddl:
+          auto: update
     open-in-view: false
 
   flyway:

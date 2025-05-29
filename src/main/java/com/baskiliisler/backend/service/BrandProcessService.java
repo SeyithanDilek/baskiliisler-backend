@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class BrandProcessService {
-    BrandProcessRepository brandProcessRepository;
+    private final BrandProcessRepository brandProcessRepository;
 
     public BrandProcess createBrandProcess(Brand brand) {
         BrandProcess brandProcess = BrandProcess.builder()

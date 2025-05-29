@@ -1,5 +1,6 @@
 package com.baskiliisler.backend.security;
 
+import com.baskiliisler.backend.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -16,9 +17,13 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
+    private static final String SECRET_KEY = "myVerySecureJwtSecretKey123456789012345678901234567890";
 
     public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public String extractSubject(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -40,7 +45,17 @@ public class JwtService {
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String generateToken(User user) {
+        return Jwts.builder()
+                .setSubject(user.getId().toString())
+                .claim("role", user.getRole().name())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -68,7 +83,11 @@ public class JwtService {
     }
 
     private Key getSignInKey() {
-        byte[] keyBytes = java.util.Base64.getDecoder().decode(SECRET_KEY);
-        return Keys.hmacShaKeyFor(keyBytes);
+        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    // Token'ı parse etmek için metod
+    public Claims parse(String token) {
+        return extractAllClaims(token);
     }
 } 

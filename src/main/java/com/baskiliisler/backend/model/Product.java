@@ -13,7 +13,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class Product {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "products_id_seq")
+    @SequenceGenerator(name = "products_id_seq", sequenceName = "products_id_seq", allocationSize = 1)
     private Long id;
     @Column(nullable = false, unique = true, length = 100)
     private String code;                    // "PAP_CUP_M" vb.

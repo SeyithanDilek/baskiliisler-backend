@@ -1,51 +1,44 @@
 package com.baskiliisler.backend;
 
-import com.baskiliisler.backend.config.JwtUtil;
+import com.baskiliisler.backend.security.JwtService;
 import com.baskiliisler.backend.common.Role;
 import com.baskiliisler.backend.model.User;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 
 @SpringBootTest
-@ActiveProfiles("default")
-@AutoConfigureTestDatabase(replace = Replace.NONE)
 class BackendApplicationTests {
 
+	@Test
+	void contextLoads() {
+	}
+
 	@Autowired
-	private JwtUtil jwtUtil;
+	private JwtService jwtService;
 
 	@Test
-	@DisplayName("Uygulama context'i başarıyla yükleniyor")
-	void contextLoads() {
-		assertThat(jwtUtil).isNotNull();
+	void jwtUtilShouldBeConfigured() {
+		assertThat(jwtService).isNotNull();
 	}
 
 	@Test
-	@DisplayName("JWT token üretimi ve doğrulaması çalışıyor")
-	void jwtTokenGenerationAndValidation() {
-		// given
+	void jwtTokenGenerationShouldWork() {
 		User testUser = User.builder()
 				.id(1L)
-				.email("test@example.com")
 				.name("Test User")
-				.role(Role.REP)
+				.email("test@example.com")
+				.passwordHash("hashedPassword")
+				.role(Role.ADMIN)
 				.build();
 
-		// when
-		String token = jwtUtil.generateToken(testUser);
-		var claims = jwtUtil.parse(token);
+		String token = jwtService.generateToken(testUser);
+		var claims = jwtService.parse(token);
 
-		// then
-		assertThat(claims).isNotNull();
-		assertThat(claims.getSubject()).isEqualTo(testUser.getId().toString());
-		assertThat(claims.get("role", String.class)).isEqualTo(testUser.getRole().name());
+		assertThat(token).isNotNull();
+		assertThat(claims.getSubject()).isEqualTo("1");
+		assertThat(claims.get("role")).isEqualTo("ADMIN");
 	}
-
 }

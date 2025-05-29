@@ -1,22 +1,20 @@
 package com.baskiliisler.backend.config;
 
+import com.baskiliisler.backend.repository.UserRepository;
 import com.baskiliisler.backend.security.JwtService;
-import com.baskiliisler.backend.security.JwtAuthenticationFilter;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import static org.mockito.Mockito.mock;
 
 @TestConfiguration
 @EnableWebSecurity
@@ -24,48 +22,41 @@ public class TestSecurityConfig {
 
     @Bean
     @Primary
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter, UserDetailsService userDetailsService) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .headers(headers -> headers.frameOptions().disable())
+    public SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .authenticationProvider(authenticationProvider(userDetailsService))
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+                .addFilterBefore(testJwtFilter(), UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService) {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
+    @Primary
+    public JwtFilter testJwtFilter() {
+        return new JwtFilter(testJwtService(), testUserRepository());
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public JwtService jwtService() {
+    @Primary
+    public JwtService testJwtService() {
         return new JwtService();
     }
 
     @Bean
-    public JwtUtil jwtUtil() {
-        return new JwtUtil("test-secret-key-test-secret-key-test-secret-key-test", "30m");
+    @Primary
+    public UserRepository testUserRepository() {
+        return mock(UserRepository.class);
+    }
+
+    @Bean
+    @Primary
+    public PasswordEncoder testPasswordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

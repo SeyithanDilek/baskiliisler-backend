@@ -3,6 +3,7 @@ package com.baskiliisler.backend.config;
 import com.baskiliisler.backend.common.Role;
 import com.baskiliisler.backend.model.User;
 import com.baskiliisler.backend.repository.UserRepository;
+import com.baskiliisler.backend.security.JwtService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -31,7 +33,7 @@ class JwtFilterTest {
     private UserRepository userRepository;
 
     @Mock
-    private JwtUtil jwtUtil;
+    private JwtService jwtService;
 
     @Mock
     private HttpServletRequest request;
@@ -66,7 +68,7 @@ class JwtFilterTest {
         Claims mockClaims = mock(Claims.class);
         when(request.getRequestURI()).thenReturn("/api/brands"); // protected endpoint
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(TEST_TOKEN);
-        when(jwtUtil.parse(anyString())).thenReturn(mockClaims);
+        when(jwtService.parse(anyString())).thenReturn(mockClaims);
         when(mockClaims.getSubject()).thenReturn(testUser.getId().toString());
         when(mockClaims.get("role", String.class)).thenReturn(testUser.getRole().name());
         when(userRepository.existsById(testUser.getId())).thenReturn(true);
@@ -119,7 +121,7 @@ class JwtFilterTest {
         // given
         when(request.getRequestURI()).thenReturn("/api/brands"); // protected endpoint
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(TEST_TOKEN);
-        when(jwtUtil.parse(anyString())).thenThrow(new RuntimeException("Token parsing failed"));
+        when(jwtService.parse(anyString())).thenThrow(new RuntimeException("Token parsing failed"));
 
         // when
         jwtFilter.doFilterInternal(request, response, filterChain);
@@ -137,7 +139,7 @@ class JwtFilterTest {
         Claims mockClaims = mock(Claims.class);
         when(request.getRequestURI()).thenReturn("/api/brands"); // protected endpoint
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(TEST_TOKEN);
-        when(jwtUtil.parse(anyString())).thenReturn(mockClaims);
+        when(jwtService.parse(anyString())).thenReturn(mockClaims);
         when(mockClaims.getSubject()).thenReturn(testUser.getId().toString());
         when(mockClaims.get("role", String.class)).thenReturn(testUser.getRole().name());
         when(userRepository.existsById(testUser.getId())).thenReturn(false);
