@@ -1,25 +1,26 @@
 spring:
   datasource:
-    url: jdbc:postgresql://aws-0-us-east-2.pooler.supabase.com:6543/postgres?sslmode=require&prepareThreshold=0
-    username: postgres.nzpbfnqhnujvugsvuyer
-    password: Baskiliisler
+    url: jdbc:postgresql://neondb_owner:npg_9ELGpFjkd8xl@ep-quiet-water-a2r7h6fr.eu-central-1.aws.neon.tech/neondb?sslmode=require
+    username: neondb_owner
+    password: npg_9ELGpFjkd8xl
     hikari:
-      # Supabase Connection Pooler için optimize edilmiş ayarlar
-      maximum-pool-size: 5       # Pooler ile daha yüksek limit
-      minimum-idle: 1             # Minimum idle connection
-      connection-timeout: 20000   # 20 saniye connection timeout
-      idle-timeout: 300000        # 5 dakika idle timeout
-      max-lifetime: 1800000       # 30 dakika max lifetime
-      leak-detection-threshold: 60000  # 1 dakika leak detection
+      # Neon PostgreSQL için optimize edilmiş ayarlar
+      maximum-pool-size: 10          # Production için daha yüksek
+      minimum-idle: 2                # En az 2 idle connection
+      connection-timeout: 30000      # 30 saniye connection timeout
+      idle-timeout: 600000           # 10 dakika idle timeout
+      max-lifetime: 1800000          # 30 dakika max lifetime
+      leak-detection-threshold: 60000 # 1 dakika leak detection
       pool-name: BaskiliIslerHikariCP
-      auto-commit: true          # AutoCommit'i manual kapat
+      auto-commit: true              # AutoCommit'i manual kapat
       
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update              # DDL-auto'yu update yap
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-    show-sql: false
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+    show-sql: true
     properties:
       hibernate:
         format_sql: false

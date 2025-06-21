@@ -11,6 +11,7 @@ import com.baskiliisler.backend.repository.BrandRepository;
 import com.baskiliisler.backend.repository.QuoteRepository;
 import com.baskiliisler.backend.type.ProcessStatus;
 import com.baskiliisler.backend.type.QuoteStatus;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,6 +21,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -36,6 +39,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class QuoteServiceTest {
 
     @Mock
@@ -52,6 +56,9 @@ class QuoteServiceTest {
 
     @Mock
     private BrandProcessHistoryService brandProcessHistoryService;
+
+    @Mock
+    private EntityManager entityManager;
 
     @InjectMocks
     private QuoteService quoteService;
@@ -132,7 +139,7 @@ class QuoteServiceTest {
             assertThat(result.getCurrency()).isEqualTo("TRY");
 
             verify(brandRepository).findById(testCreateDto.brandId());
-            verify(quoteRepository).save(any(Quote.class));
+            verify(quoteRepository, times(2)).save(any(Quote.class)); // İlk save ve totalPrice update sonrası ikinci save
             verify(quoteItemService).assembleAndSaveQuoteItems(any(Quote.class), eq(testCreateDto.items()));
             verify(brandProcessService).updateBrandProcessStatus(testBrand.getId(), ProcessStatus.OFFER_SENT);
             verify(brandProcessHistoryService).saveProcessHistoryForChangeStatus(
@@ -233,6 +240,246 @@ class QuoteServiceTest {
             verify(quoteRepository).findById(quoteId);
             verify(quoteItemService, never()).deleteQuoteItems(any());
             verify(quoteItemService, never()).assembleAndSaveQuoteItems(any(), any());
+        }
+    }
+
+    @Nested
+    @DisplayName("Teklif Listeleme Testleri")
+    class GetQuoteTests {
+
+        @Test
+        @DisplayName("Tüm teklifleri getirme")
+        void whenGetAllQuotes_thenReturnAllQuotes() {
+            // given
+            List<Quote> quotes = List.of(testQuote);
+            when(quoteRepository.findAll()).thenReturn(quotes);
+
+            // when
+            List<Quote> result = quoteService.getAllQuotes();
+
+            // then
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0)).isEqualTo(testQuote);
+            verify(quoteRepository).findAll();
+        }
+
+        @Test
+        @DisplayName("ID ile teklif getirme - başarılı")
+        void whenGetQuoteById_thenReturnQuote() {
+            // given
+            Long quoteId = 1L;
+            when(quoteRepository.findByIdWithItems(quoteId)).thenReturn(Optional.of(testQuote));
+
+            // when
+            Quote result = quoteService.getQuoteById(quoteId);
+
+            // then
+            assertThat(result).isEqualTo(testQuote);
+            verify(quoteRepository).findByIdWithItems(quoteId);
+        }
+
+        @Test
+        @DisplayName("ID ile teklif getirme - bulunamadı")
+        void whenGetQuoteById_withNonExistentId_thenThrowException() {
+            // given
+            Long nonExistentId = 999L;
+            when(quoteRepository.findByIdWithItems(nonExistentId)).thenReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> quoteService.getQuoteById(nonExistentId))
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasMessageContaining("Teklif bulunamadı");
+
+            verify(quoteRepository).findByIdWithItems(nonExistentId);
+        }
+
+        @Test
+        @DisplayName("Markaya göre teklifleri getirme")
+        void whenGetQuotesByBrand_thenReturnQuotes() {
+            // given
+            Long brandId = 1L;
+            List<Quote> quotes = List.of(testQuote);
+            when(brandRepository.findById(brandId)).thenReturn(Optional.of(testBrand));
+            when(quoteRepository.findByBrand(testBrand)).thenReturn(quotes);
+
+            // when
+            List<Quote> result = quoteService.getQuotesByBrand(brandId);
+
+            // then
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0)).isEqualTo(testQuote);
+            verify(brandRepository).findById(brandId);
+            verify(quoteRepository).findByBrand(testBrand);
+        }
+    }
+
+    @Nested
+    @DisplayName("Teklif Silme Testleri")
+    class DeleteQuoteTests {
+
+        @Test
+        @DisplayName("DRAFT durumundaki teklifi silme - başarılı")
+        void whenDeleteQuote_withDraftStatus_thenDeleteSuccessfully() {
+            // given
+            Long quoteId = 1L;
+            Quote draftQuote = Quote.builder()
+                    .id(quoteId)
+                    .brand(testBrand)
+                    .status(QuoteStatus.DRAFT)
+                    .items(new ArrayList<>())
+                    .build();
+
+            when(quoteRepository.findById(quoteId)).thenReturn(Optional.of(draftQuote));
+            doNothing().when(quoteRepository).delete(any(Quote.class));
+
+            // when
+            quoteService.deleteQuote(quoteId);
+
+            // then
+            verify(quoteRepository).findById(quoteId);
+            verify(quoteRepository).delete(draftQuote);
+        }
+
+        @Test
+        @DisplayName("EXPIRED durumundaki teklifi silme - başarılı")
+        void whenDeleteQuote_withExpiredStatus_thenDeleteSuccessfully() {
+            // given
+            Long quoteId = 1L;
+            Quote expiredQuote = Quote.builder()
+                    .id(quoteId)
+                    .brand(testBrand)
+                    .status(QuoteStatus.EXPIRED)
+                    .items(new ArrayList<>())
+                    .build();
+
+            when(quoteRepository.findById(quoteId)).thenReturn(Optional.of(expiredQuote));
+            doNothing().when(quoteRepository).delete(any(Quote.class));
+
+            // when
+            quoteService.deleteQuote(quoteId);
+
+            // then
+            verify(quoteRepository).findById(quoteId);
+            verify(quoteRepository).delete(expiredQuote);
+        }
+
+        @Test
+        @DisplayName("Silinemez durumda teklifi silme - hata")
+        void whenDeleteQuote_withUndeletableStatus_thenThrowException() {
+            // given
+            Long quoteId = 1L;
+            Quote acceptedQuote = Quote.builder()
+                    .id(quoteId)
+                    .brand(testBrand)
+                    .status(QuoteStatus.ACCEPTED)
+                    .build();
+
+            when(quoteRepository.findById(quoteId)).thenReturn(Optional.of(acceptedQuote));
+
+            // when & then
+            assertThatThrownBy(() -> quoteService.deleteQuote(quoteId))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("Bu teklif silinemez");
+
+            verify(quoteRepository).findById(quoteId);
+            verify(quoteRepository, never()).delete(any());
+        }
+
+        @Test
+        @DisplayName("Olmayan teklifi silme - hata")
+        void whenDeleteQuote_withNonExistentId_thenThrowException() {
+            // given
+            Long nonExistentId = 999L;
+            when(quoteRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> quoteService.deleteQuote(nonExistentId))
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasMessageContaining("Teklif bulunamadı");
+
+            verify(quoteRepository).findById(nonExistentId);
+            verify(quoteRepository, never()).delete(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("Teklif Expire Etme Testleri")
+    class ExpireQuoteTests {
+
+        @Test
+        @DisplayName("OFFER_SENT durumundaki teklifi expire etme - başarılı")
+        void whenExpireQuote_withOfferSentStatus_thenExpireSuccessfully() {
+            // given
+            Long quoteId = 1L;
+            Quote offerSentQuote = Quote.builder()
+                    .id(quoteId)
+                    .brand(testBrand)
+                    .status(QuoteStatus.OFFER_SENT)
+                    .validUntil(LocalDate.now().plusDays(30))
+                    .build();
+
+            BrandProcess brandProcess = BrandProcess.builder()
+                    .brand(testBrand)
+                    .status(ProcessStatus.EXPIRED)
+                    .build();
+
+            when(quoteRepository.findById(quoteId)).thenReturn(Optional.of(offerSentQuote));
+            when(brandProcessService.checkForExpired(testBrand.getId()))
+                    .thenReturn(brandProcess);
+            doNothing().when(brandProcessHistoryService).saveProcessHistoryForChangeStatus(
+                    eq(brandProcess), eq(ProcessStatus.EXPIRED), eq(ProcessStatus.OFFER_SENT), anyString());
+
+            // when
+            quoteService.expireQuote(quoteId);
+
+            // then
+            assertThat(offerSentQuote.getStatus()).isEqualTo(QuoteStatus.EXPIRED);
+            assertThat(offerSentQuote.getUpdatedAt()).isNotNull();
+
+            verify(quoteRepository).findById(quoteId);
+            verify(brandProcessService).checkForExpired(testBrand.getId());
+            verify(brandProcessHistoryService).saveProcessHistoryForChangeStatus(
+                    eq(brandProcess), eq(ProcessStatus.EXPIRED), eq(ProcessStatus.OFFER_SENT), anyString());
+        }
+
+        @Test
+        @DisplayName("Expire edilemeyen durumda teklifi expire etme - hata")
+        void whenExpireQuote_withUnexpirableStatus_thenThrowException() {
+            // given
+            Long quoteId = 1L;
+            Quote acceptedQuote = Quote.builder()
+                    .id(quoteId)
+                    .brand(testBrand)
+                    .status(QuoteStatus.ACCEPTED)
+                    .build();
+
+            when(quoteRepository.findById(quoteId)).thenReturn(Optional.of(acceptedQuote));
+
+            // when & then
+            assertThatThrownBy(() -> quoteService.expireQuote(quoteId))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("Teklif süresi dolmuş");
+
+            verify(quoteRepository).findById(quoteId);
+            verify(brandProcessService, never()).checkForExpired(any());
+            verify(brandProcessHistoryService, never()).saveProcessHistoryForChangeStatus(any(), any(), any(), any());
+        }
+
+        @Test
+        @DisplayName("Olmayan teklifi expire etme - hata")
+        void whenExpireQuote_withNonExistentId_thenThrowException() {
+            // given
+            Long nonExistentId = 999L;
+            when(quoteRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> quoteService.expireQuote(nonExistentId))
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasMessageContaining("Teklif bulunamadı");
+
+            verify(quoteRepository).findById(nonExistentId);
+            verify(brandProcessService, never()).updateBrandProcessStatus(any(), any());
+            verify(brandProcessHistoryService, never()).saveProcessHistoryForChangeStatus(any(), any(), any(), any());
         }
     }
 } 

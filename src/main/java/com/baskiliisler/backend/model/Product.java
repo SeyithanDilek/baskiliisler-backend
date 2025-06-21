@@ -20,7 +20,7 @@ public class Product {
     private String code;                    // "PAP_CUP_M" vb.
     private String name;                    // "Orta Karton Bardak"
     private String unit;                    // "adet", "kg"
-    @Column(nullable = false)
+    @Column(name = "unit_price", nullable = false)
     private BigDecimal unitPrice;           // Teklif için taban fiyat
     @Builder.Default
     private boolean active = true;

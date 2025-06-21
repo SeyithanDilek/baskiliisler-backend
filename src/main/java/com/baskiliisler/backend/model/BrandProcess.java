@@ -23,6 +23,7 @@ public class BrandProcess {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "brand_id")
     private Brand brand;
 
     @Enumerated(EnumType.STRING)
@@ -34,5 +35,6 @@ public class BrandProcess {
     @Column(columnDefinition = "VARCHAR(4000)")
     private String payload;
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }

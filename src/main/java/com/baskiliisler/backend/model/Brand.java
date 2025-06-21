@@ -22,11 +22,14 @@ public class Brand {
     @Column(nullable = false, unique = true)
     private String name;
 
+    @Column(name = "contact_phone")
     private String contactPhone;
 
     @Email
+    @Column(name = "contact_email")
     private String contactEmail;
 
     @ManyToOne
+    @JoinColumn(name = "assigned_user_id")
     private User assignedUser;
 }

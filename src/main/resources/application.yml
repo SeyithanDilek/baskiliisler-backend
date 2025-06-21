@@ -1,31 +1,66 @@
 spring:
   datasource:
-    url: jdbc:postgresql://baskiliisler-baskiliisler.d.aivencloud.com:14549/defaultdb?sslmode=require
-    username: avnadmin
-    password: AVNS_cFGK5rlTGxFz9KBaivY
+    url: jdbc:postgresql://ep-quiet-water-a2r7h6fr.eu-central-1.aws.neon.tech:5432/neondb?sslmode=require
+    username: neondb_owner
+    password: npg_9ELGpFjkd8xl
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5           # Neon için daha yüksek ayar
+      minimum-idle: 1                # En az 1 idle connection
+      connection-timeout: 30000      # 30 saniye connection timeout
+      idle-timeout: 300000           # 5 dakika idle timeout
+      max-lifetime: 1800000          # 30 dakika max lifetime
+      leak-detection-threshold: 60000 # 1 dakika leak detection
+      pool-name: BaskiliIslerHikariCP
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: update              # DDL-auto'yu update yap
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+    show-sql: true                   # SQL sorgularını göster
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
+        jdbc:
+          batch_size: 25
+        order_inserts: true
+        order_updates: true
+        connection:
+          provider_disables_autocommit: false
+          auto_commit: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
         id:
-          new_generator_mappings: true
-          db_structure_naming_strategy: single
+          new_generator_mappings: false
+          db_structure_naming_strategy: legacy
+        default_schema: public
         hbm2ddl:
           auto: update
-    open-in-view: false
-
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health
+    endpoint:
+      health:
+        show-details: never
   flyway:
     baseline-on-migrate: true
-    enabled: true
+    enabled: false                   # DDL-auto create kullandığımız için Flyway'i kapat
 
 server:
   port: 8088
+  error:
+    include-message: never
+  tomcat:
+    threads:
+          max: 50
+          min-spare: 5
+
+jwt:
+  secret: myVerySecureJwtSecretKey123456789012345678901234567890
+  expiration: 24H
 
 springdoc:
   api-docs:
@@ -41,10 +76,13 @@ springdoc:
 
 logging:
   level:
-    root: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
+    root: WARN
+    com.baskiliisler: INFO
+    org.springframework: WARN
+    org.hibernate: ERROR
+    org.apache.tomcat: WARN
+  pattern:
+    console: "%d{HH:mm:ss} %-5level %logger{20} - %msg%n"
 
-jwt:
-  secret: 4b8d7f89e4123cafe7e01a2b9c65f013af45d12fbeef1187c7fa8934e0b3dd13
-  expiration: 30m
+# Server configuration
+

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -69,6 +70,36 @@ public class OrderService {
         );
 
         return order;
+    }
+
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+    public Order getOrderById(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Sipariş bulunamadı"));
+    }
+
+    public List<Order> getOrdersByBrand(Long brandId) {
+        return orderRepository.findByQuoteBrandId(brandId);
+    }
+
+    @Transactional
+    public Order updateOrderStatus(Long orderId, OrderStatus newStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Sipariş bulunamadı"));
+
+        OrderStatus oldStatus = order.getStatus();
+        order.setStatus(newStatus);
+        order.setUpdatedAt(LocalDateTime.now());
+
+        // Eğer DELIVERED durumuna geçiyorsa deliveredAt'i set et
+        if (newStatus == OrderStatus.DELIVERED && oldStatus != OrderStatus.DELIVERED) {
+            order.setDeliveredAt(LocalDateTime.now());
+        }
+
+        return orderRepository.save(order);
     }
 
 }

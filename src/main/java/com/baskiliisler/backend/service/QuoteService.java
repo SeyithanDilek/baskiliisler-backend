@@ -6,6 +6,7 @@ import com.baskiliisler.backend.model.*;
 import com.baskiliisler.backend.repository.*;
 import com.baskiliisler.backend.type.ProcessStatus;
 import com.baskiliisler.backend.type.QuoteStatus;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -26,6 +28,7 @@ public class QuoteService {
     private final BrandProcessService brandProcessService;
     private final BrandProcessHistoryService brandProcessHistoryService;
     private final OrderService orderService;
+    private final EntityManager entityManager;
 
     @Transactional
     public Quote createQuote(QuoteCreateDto quoteCreateDto) {
@@ -44,6 +47,7 @@ public class QuoteService {
 
         BigDecimal totalPrice = quoteItemService.assembleAndSaveQuoteItems(quote, quoteCreateDto.items());
         quote.setTotalPrice(totalPrice);
+        quote = quoteRepo.save(quote);
 
         BrandProcess brandProcess = brandProcessService.updateBrandProcessStatus(brand.getId(), ProcessStatus.OFFER_SENT);
 
@@ -53,7 +57,10 @@ public class QuoteService {
                 ProcessStatus.SAMPLE_LEFT,  // fromStatus
                 "{\"quoteId\":" + quote.getId() + "}");
 
-        return quote;
+        // Transaction'ı flush et ve Quote'u tekrar fetch et
+        entityManager.flush();
+        entityManager.clear();
+        return quoteRepo.findByIdWithItems(quote.getId()).orElse(quote);
     }
 
     @Transactional
@@ -84,7 +91,11 @@ public class QuoteService {
                 ProcessStatus.OFFER_SENT,  // toStatus
                 ProcessStatus.OFFER_SENT,  // fromStatus
                 "Revizyon yapıldı. Teklif ID: " + quote.getId());
-        return quote;
+        
+        // Transaction'ı flush et ve Quote'u tekrar fetch et
+        entityManager.flush();
+        entityManager.clear();
+        return quoteRepo.findByIdWithItems(quote.getId()).orElse(quote);
     }
 
     @Transactional
@@ -128,5 +139,34 @@ public class QuoteService {
                 ProcessStatus.EXPIRED,     // toStatus
                 ProcessStatus.OFFER_SENT,  // fromStatus  
                 "Teklif süresi doldu. Teklif ID: " + quote.getId());
+    }
+
+    public List<Quote> getAllQuotes() {
+        return quoteRepo.findAll();
+    }
+
+    public Quote getQuoteById(Long quoteId) {
+        return quoteRepo.findByIdWithItems(quoteId)
+                .orElseThrow(() -> new EntityNotFoundException("Teklif bulunamadı"));
+    }
+
+    public List<Quote> getQuotesByBrand(Long brandId) {
+        Brand brand = brandRepo.findById(brandId)
+                .orElseThrow(() -> new EntityNotFoundException("Marka bulunamadı"));
+        return quoteRepo.findByBrand(brand);
+    }
+
+    @Transactional
+    public void deleteQuote(Long quoteId) {
+        Quote quote = quoteRepo.findById(quoteId)
+                .orElseThrow(() -> new EntityNotFoundException("Teklif bulunamadı"));
+
+        // Sadece DRAFT veya EXPIRED durumundaki teklifler silinebilir
+        if (quote.getStatus() != QuoteStatus.DRAFT && 
+            quote.getStatus() != QuoteStatus.EXPIRED) {
+            throw new IllegalStateException("Bu teklif silinemez. Sadece taslak veya süresi dolmuş teklifler silinebilir.");
+        }
+
+        quoteRepo.delete(quote);
     }
 }

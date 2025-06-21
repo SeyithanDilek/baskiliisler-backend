@@ -48,6 +48,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    @ApiResponse(responseCode = "400", description = "Geçersiz durum", 
+                content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException ex) {
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Bad Request")
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     @ExceptionHandler(ResponseStatusException.class)
     @ApiResponse(responseCode = "4xx", description = "HTTP Status Exception", 
                 content = @Content(schema = @Schema(implementation = ErrorResponse.class)))

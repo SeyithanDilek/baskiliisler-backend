@@ -77,7 +77,7 @@ class AuthServiceTest {
         // when & then
         assertThatThrownBy(() -> authService.login(TEST_EMAIL, TEST_PASSWORD))
                 .isInstanceOf(ResponseStatusException.class)
-                .hasMessageContaining("User not found");
+                .hasMessageContaining("Kullanıcı bulunamadı");
     }
 
     @Test
@@ -90,6 +90,6 @@ class AuthServiceTest {
         // when & then
         assertThatThrownBy(() -> authService.login(TEST_EMAIL, TEST_PASSWORD))
                 .isInstanceOf(ResponseStatusException.class)
-                .hasMessageContaining("Password is incorrect");
+                .hasMessageContaining("Şifre hatalı");
     }
 } 

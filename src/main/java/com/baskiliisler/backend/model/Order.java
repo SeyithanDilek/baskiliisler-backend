@@ -21,10 +21,12 @@ public class Order {
 
     /** Sipariş, kabul edilmiş tek bir teklife bağlıdır */
     @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "quote_id")
     private Quote quote;
 
     /** Üretimi yapacak fabrika; henüz atanmamışsa null */
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "factory_id")
     private Factory factory;
 
     /** Kalemler (bardak, sticker …) */
@@ -32,14 +34,16 @@ public class Order {
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;      // sipariş açıldığı an
 
     private LocalDate     deadline;       // patronun koyduğu üst teslim tarihi
+    @Column(name = "delivered_at")
     private LocalDateTime deliveredAt;    // tüm kalemler teslim olunca set edilir
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;      // her başlık güncellemesinde otomatik set
 
-    @Column(nullable = false, precision = 12, scale = 2)
+    @Column(name = "total_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalPrice;        // tekliften kopyalanır – değişmez
 
     @Enumerated(EnumType.STRING)

@@ -15,18 +15,21 @@ public class ProcessHistory {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "process_id")
     private BrandProcess process;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "from_status")
     private ProcessStatus fromStatus;
 
-    @Enumerated(EnumType.STRING) @Column(nullable = false)
+    @Enumerated(EnumType.STRING) 
+    @Column(name = "to_status", nullable = false)
     private ProcessStatus toStatus;
 
-    @Column(nullable = false)
+    @Column(name = "actor_id", nullable = false)
     private Long actorId;
 
-    @Column(nullable = false)
+    @Column(name = "changed_at", nullable = false)
     private java.time.LocalDateTime changedAt;
 
     @Column(columnDefinition = "TEXT")
