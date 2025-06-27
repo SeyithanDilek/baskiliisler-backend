@@ -62,21 +62,17 @@ public class OpenApiConfig {
     private List<Server> getServerList() {
         List<Server> servers = new ArrayList<>();
         
-        // Production ortamında önce production server'ı ekle
-        if ("production".equals(activeProfile)) {
-            servers.add(new Server()
-                    .url("https://baskili-isler-backend.onrender.com")
-                    .description("🌐 Production Server"));
-        } else {
-            // Development ortamında önce localhost'u ekle
+        // Her durumda önce production server'ı ekle
+        servers.add(new Server()
+                .url("https://baskili-isler-backend.onrender.com")
+                .description("🌐 Production Server"));
+        
+        // Production ortamında sadece production server
+        if (!"production".equals(activeProfile)) {
+            // Development ortamında localhost'u da ekle
             servers.add(new Server()
                     .url("http://localhost:8088")
                     .description("🏠 Local Development Server"));
-            
-            // Production server'ı da ekle (test için)
-            servers.add(new Server()
-                    .url("https://baskili-isler-backend.onrender.com")
-                    .description("🌐 Production Server"));
         }
         
         return servers;

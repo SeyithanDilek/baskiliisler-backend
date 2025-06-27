@@ -19,4 +19,13 @@ public interface QuoteRepository extends JpaRepository<Quote, Long> {
     
     @Query("SELECT q FROM Quote q LEFT JOIN FETCH q.items WHERE q.id = :id")
     Optional<Quote> findByIdWithItems(@Param("id") Long id);
+    
+    @Query("SELECT q FROM Quote q LEFT JOIN FETCH q.brand")
+    List<Quote> findAllWithBrand();
+    
+    @Query("SELECT q FROM Quote q LEFT JOIN FETCH q.brand LEFT JOIN FETCH q.items WHERE q.id = :id")
+    Optional<Quote> findByIdWithBrandAndItems(@Param("id") Long id);
+    
+    @Query("SELECT q FROM Quote q LEFT JOIN FETCH q.brand WHERE q.brand = :brand")
+    List<Quote> findByBrandWithBrand(@Param("brand") Brand brand);
 }

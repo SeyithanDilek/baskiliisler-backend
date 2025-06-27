@@ -20,6 +20,7 @@ public class QuoteMapper {
             Collections.emptyList();
             
         return new QuoteResponseDto(q.getId(), q.getStatus(),
-                q.getTotalPrice(), q.getValidUntil(), items);
+                q.getTotalPrice(), q.getValidUntil(), 
+                q.getBrand().getName(), q.getCreatedAt(), items);
     }
 }

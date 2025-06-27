@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://neondb_owner:npg_9ELGpFjkd8xl@ep-quiet-water-a2r7h6fr.eu-central-1.aws.neon.tech/neondb?sslmode=require
-    username: neondb_owner
-    password: npg_9ELGpFjkd8xl
+    url: jdbc:postgresql://dpg-d1bttqeuk2gs73a4bg60-a:5432/postgress_w2fz?sslmode=require
+    username: admin
+    password: IDn3KASVVe7ZtQGpCnz3pcPjwDn0mXUD
     hikari:
       # Neon PostgreSQL için optimize edilmiş ayarlar
       maximum-pool-size: 10          # Production için daha yüksek

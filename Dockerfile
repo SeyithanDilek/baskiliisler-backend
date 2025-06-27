@@ -5,8 +5,7 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Environment variables - production profile kullan
-ENV SPRING_PROFILES_ACTIVE=production
+# Environment variables - default profile kullan (production satırı kaldırıldı)
 
 COPY target/*.jar app.jar
 

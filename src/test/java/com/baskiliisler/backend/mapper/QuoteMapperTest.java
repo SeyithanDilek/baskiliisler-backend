@@ -97,6 +97,8 @@ class QuoteMapperTest {
         assertThat(result.status()).isEqualTo(QuoteStatus.OFFER_SENT);
         assertThat(result.totalPrice()).isEqualTo(BigDecimal.valueOf(2000));
         assertThat(result.validUntil()).isEqualTo(quoteWithItems.getValidUntil());
+        assertThat(result.brandName()).isEqualTo("Test Brand");
+        assertThat(result.createdAt()).isEqualTo(quoteWithItems.getCreatedAt());
 
         // Items kontrolü
         assertThat(result.items()).hasSize(2);
@@ -128,6 +130,8 @@ class QuoteMapperTest {
         assertThat(result.status()).isEqualTo(QuoteStatus.DRAFT);
         assertThat(result.totalPrice()).isEqualTo(BigDecimal.ZERO);
         assertThat(result.validUntil()).isEqualTo(quoteWithoutItems.getValidUntil());
+        assertThat(result.brandName()).isEqualTo("Test Brand");
+        assertThat(result.createdAt()).isEqualTo(quoteWithoutItems.getCreatedAt());
         assertThat(result.items()).isEmpty();
     }
 
@@ -155,6 +159,8 @@ class QuoteMapperTest {
         assertThat(result.status()).isEqualTo(QuoteStatus.ACCEPTED);
         assertThat(result.totalPrice()).isEqualTo(BigDecimal.valueOf(5000));
         assertThat(result.validUntil()).isEqualTo(acceptedQuote.getValidUntil());
+        assertThat(result.brandName()).isEqualTo("Test Brand");
+        assertThat(result.createdAt()).isEqualTo(acceptedQuote.getCreatedAt());
         assertThat(result.items()).isEmpty();
     }
 
@@ -182,6 +188,8 @@ class QuoteMapperTest {
         assertThat(result.status()).isEqualTo(QuoteStatus.EXPIRED);
         assertThat(result.totalPrice()).isEqualTo(BigDecimal.valueOf(1500));
         assertThat(result.validUntil()).isEqualTo(expiredQuote.getValidUntil());
+        assertThat(result.brandName()).isEqualTo("Test Brand");
+        assertThat(result.createdAt()).isEqualTo(expiredQuote.getCreatedAt());
         assertThat(result.items()).isEmpty();
     }
 
@@ -209,6 +217,8 @@ class QuoteMapperTest {
         assertThat(result.status()).isEqualTo(QuoteStatus.OFFER_SENT);
         assertThat(result.totalPrice()).isEqualTo(BigDecimal.valueOf(250.50));
         assertThat(result.validUntil()).isEqualTo(usdQuote.getValidUntil());
+        assertThat(result.brandName()).isEqualTo("Test Brand");
+        assertThat(result.createdAt()).isEqualTo(usdQuote.getCreatedAt());
         assertThat(result.items()).isEmpty();
     }
 } 

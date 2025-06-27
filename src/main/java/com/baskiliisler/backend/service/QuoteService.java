@@ -142,18 +142,18 @@ public class QuoteService {
     }
 
     public List<Quote> getAllQuotes() {
-        return quoteRepo.findAll();
+        return quoteRepo.findAllWithBrand();
     }
 
     public Quote getQuoteById(Long quoteId) {
-        return quoteRepo.findByIdWithItems(quoteId)
+        return quoteRepo.findByIdWithBrandAndItems(quoteId)
                 .orElseThrow(() -> new EntityNotFoundException("Teklif bulunamadı"));
     }
 
     public List<Quote> getQuotesByBrand(Long brandId) {
         Brand brand = brandRepo.findById(brandId)
                 .orElseThrow(() -> new EntityNotFoundException("Marka bulunamadı"));
-        return quoteRepo.findByBrand(brand);
+        return quoteRepo.findByBrandWithBrand(brand);
     }
 
     @Transactional
