@@ -18,7 +18,7 @@ class FactoryMapperTest {
         FactoryRequestDto dto = new FactoryRequestDto(
                 "Test Factory",
                 "Test Address, Istanbul",
-                1000,
+                "+90 555 123 45 67",
                 true
         );
 
@@ -30,7 +30,7 @@ class FactoryMapperTest {
         assertThat(result.getId()).isNull(); // yeni entity
         assertThat(result.getName()).isEqualTo("Test Factory");
         assertThat(result.getAddress()).isEqualTo("Test Address, Istanbul");
-        assertThat(result.getDailyCapacity()).isEqualTo(1000);
+        assertThat(result.getPhoneNumber()).isEqualTo("+90 555 123 45 67");
         assertThat(result.isActive()).isTrue();
     }
 
@@ -41,7 +41,7 @@ class FactoryMapperTest {
         FactoryRequestDto dto = new FactoryRequestDto(
                 "Default Factory",
                 "Default Address",
-                500,
+                "+90 555 111 22 33",
                 null  // null active
         );
 
@@ -52,7 +52,7 @@ class FactoryMapperTest {
         assertThat(result).isNotNull();
         assertThat(result.getName()).isEqualTo("Default Factory");
         assertThat(result.getAddress()).isEqualTo("Default Address");
-        assertThat(result.getDailyCapacity()).isEqualTo(500);
+        assertThat(result.getPhoneNumber()).isEqualTo("+90 555 111 22 33");
         assertThat(result.isActive()).isTrue(); // default true
     }
 
@@ -63,7 +63,7 @@ class FactoryMapperTest {
         FactoryRequestDto dto = new FactoryRequestDto(
                 "Inactive Factory",
                 "Inactive Address",
-                200,
+                "+90 555 999 88 77",
                 false
         );
 
@@ -74,30 +74,8 @@ class FactoryMapperTest {
         assertThat(result).isNotNull();
         assertThat(result.getName()).isEqualTo("Inactive Factory");
         assertThat(result.getAddress()).isEqualTo("Inactive Address");
-        assertThat(result.getDailyCapacity()).isEqualTo(200);
+        assertThat(result.getPhoneNumber()).isEqualTo("+90 555 999 88 77");
         assertThat(result.isActive()).isFalse();
-    }
-
-    @Test
-    @DisplayName("Null dailyCapacity ile FactoryRequestDto'yu entity'ye dönüştürme")
-    void whenToEntity_withNullDailyCapacity_thenReturnNull() {
-        // given
-        FactoryRequestDto dto = new FactoryRequestDto(
-                "No Capacity Factory",
-                "No Capacity Address",
-                null,  // null capacity
-                true
-        );
-
-        // when
-        Factory result = FactoryMapper.toEntity(dto);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.getName()).isEqualTo("No Capacity Factory");
-        assertThat(result.getAddress()).isEqualTo("No Capacity Address");
-        assertThat(result.getDailyCapacity()).isNull();
-        assertThat(result.isActive()).isTrue();
     }
 
     @Test
@@ -108,7 +86,7 @@ class FactoryMapperTest {
                 .id(1L)
                 .name("Test Factory")
                 .address("Test Address, Ankara")
-                .dailyCapacity(1500)
+                .phoneNumber("+90 555 444 33 22")
                 .active(true)
                 .build();
 
@@ -120,7 +98,7 @@ class FactoryMapperTest {
         assertThat(result.id()).isEqualTo(1L);
         assertThat(result.name()).isEqualTo("Test Factory");
         assertThat(result.address()).isEqualTo("Test Address, Ankara");
-        assertThat(result.dailyCapacity()).isEqualTo(1500);
+        assertThat(result.phoneNumber()).isEqualTo("+90 555 444 33 22");
         assertThat(result.active()).isTrue();
     }
 
@@ -132,7 +110,7 @@ class FactoryMapperTest {
                 .id(2L)
                 .name("Inactive Factory")
                 .address("Inactive Address")
-                .dailyCapacity(800)
+                .phoneNumber("+90 555 777 66 55")
                 .active(false)
                 .build();
 
@@ -144,31 +122,7 @@ class FactoryMapperTest {
         assertThat(result.id()).isEqualTo(2L);
         assertThat(result.name()).isEqualTo("Inactive Factory");
         assertThat(result.address()).isEqualTo("Inactive Address");
-        assertThat(result.dailyCapacity()).isEqualTo(800);
+        assertThat(result.phoneNumber()).isEqualTo("+90 555 777 66 55");
         assertThat(result.active()).isFalse();
-    }
-
-    @Test
-    @DisplayName("Null dailyCapacity olan factory'yi DTO'ya dönüştürme")
-    void whenToDto_withNullDailyCapacity_thenReturnDtoWithNull() {
-        // given
-        Factory factory = Factory.builder()
-                .id(3L)
-                .name("Unknown Capacity Factory")
-                .address("Unknown Address")
-                .dailyCapacity(null)
-                .active(true)
-                .build();
-
-        // when
-        FactoryResponseDto result = FactoryMapper.toDto(factory);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(3L);
-        assertThat(result.name()).isEqualTo("Unknown Capacity Factory");
-        assertThat(result.address()).isEqualTo("Unknown Address");
-        assertThat(result.dailyCapacity()).isNull();
-        assertThat(result.active()).isTrue();
     }
 } 

@@ -18,8 +18,7 @@ public class Factory {
     private Long id;
     @Column(nullable = false, unique = true) private String name;
     private String address;
-    @Column(name = "daily_capacity")
-    private Integer dailyCapacity;          // opsiyonel
+    private String phoneNumber;
 
     @Builder.Default
     private boolean active = true;

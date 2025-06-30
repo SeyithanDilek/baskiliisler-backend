@@ -30,7 +30,7 @@ class FactoryRepositoryTest {
         testFactory = Factory.builder()
                 .name("Test Factory")
                 .address("Test Address, Istanbul")
-                .dailyCapacity(1000)
+                .phoneNumber("+90 555 123 45 67")
                 .active(true)
                 .build();
     }
@@ -48,7 +48,7 @@ class FactoryRepositoryTest {
         assertThat(result).isPresent();
         assertThat(result.get().getName()).isEqualTo("Test Factory");
         assertThat(result.get().getAddress()).isEqualTo("Test Address, Istanbul");
-        assertThat(result.get().getDailyCapacity()).isEqualTo(1000);
+        assertThat(result.get().getPhoneNumber()).isEqualTo("+90 555 123 45 67");
         assertThat(result.get().isActive()).isTrue();
     }
 
@@ -69,14 +69,14 @@ class FactoryRepositoryTest {
         Factory factory1 = Factory.builder()
                 .name("Factory 1")
                 .address("Address 1")
-                .dailyCapacity(500)
+
                 .active(true)
                 .build();
 
         Factory factory2 = Factory.builder()
                 .name("Factory 2")
                 .address("Address 2")
-                .dailyCapacity(800)
+
                 .active(false)
                 .build();
 
@@ -91,8 +91,6 @@ class FactoryRepositoryTest {
         assertThat(result).hasSize(2);
         assertThat(result).extracting(Factory::getName)
                 .containsExactlyInAnyOrder("Factory 1", "Factory 2");
-        assertThat(result).extracting(Factory::getDailyCapacity)
-                .containsExactlyInAnyOrder(500, 800);
     }
 
     @Test
@@ -106,7 +104,7 @@ class FactoryRepositoryTest {
         assertThat(result.getId()).isNotNull();
         assertThat(result.getName()).isEqualTo("Test Factory");
         assertThat(result.getAddress()).isEqualTo("Test Address, Istanbul");
-        assertThat(result.getDailyCapacity()).isEqualTo(1000);
+        assertThat(result.getPhoneNumber()).isEqualTo("+90 555 123 45 67");
         assertThat(result.isActive()).isTrue();
     }
 
@@ -132,21 +130,21 @@ class FactoryRepositoryTest {
         Factory activeFactory1 = Factory.builder()
                 .name("Active Factory 1")
                 .address("Active Address 1")
-                .dailyCapacity(600)
+
                 .active(true)
                 .build();
 
         Factory activeFactory2 = Factory.builder()
                 .name("Active Factory 2")
                 .address("Active Address 2")
-                .dailyCapacity(900)
+
                 .active(true)
                 .build();
 
         Factory inactiveFactory = Factory.builder()
                 .name("Inactive Factory")
                 .address("Inactive Address")
-                .dailyCapacity(700)
+
                 .active(false)
                 .build();
 
@@ -164,7 +162,5 @@ class FactoryRepositoryTest {
                 .containsExactlyInAnyOrder("Active Factory 1", "Active Factory 2");
         assertThat(result).extracting(Factory::isActive)
                 .containsOnly(true);
-        assertThat(result).extracting(Factory::getDailyCapacity)
-                .containsExactlyInAnyOrder(600, 900);
     }
 } 

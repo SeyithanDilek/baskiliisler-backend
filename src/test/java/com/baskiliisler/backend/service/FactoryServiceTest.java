@@ -39,7 +39,7 @@ class FactoryServiceTest {
                 .id(1L)
                 .name("Test Factory")
                 .address("Test Address, Istanbul")
-                .dailyCapacity(1000)
+                .phoneNumber("+90 555 123 45 67")
                 .active(true)
                 .build();
     }
@@ -59,7 +59,7 @@ class FactoryServiceTest {
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getName()).isEqualTo("Test Factory");
         assertThat(result.getAddress()).isEqualTo("Test Address, Istanbul");
-        assertThat(result.getDailyCapacity()).isEqualTo(1000);
+        assertThat(result.getPhoneNumber()).isEqualTo("+90 555 123 45 67");
         assertThat(result.isActive()).isTrue();
 
         verify(factoryRepository).findById(factoryId);
@@ -101,7 +101,7 @@ class FactoryServiceTest {
         FactoryRequestDto dto = new FactoryRequestDto(
                 "New Factory",
                 "New Address",
-                1200,
+                "+90 555 999 88 77",
                 true
         );
         
@@ -109,7 +109,7 @@ class FactoryServiceTest {
                 .id(1L)
                 .name("New Factory")
                 .address("New Address")
-                .dailyCapacity(1200)
+                .phoneNumber("+90 555 999 88 77")
                 .active(true)
                 .build();
         
@@ -123,7 +123,7 @@ class FactoryServiceTest {
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getName()).isEqualTo("New Factory");
         assertThat(result.getAddress()).isEqualTo("New Address");
-        assertThat(result.getDailyCapacity()).isEqualTo(1200);
+        assertThat(result.getPhoneNumber()).isEqualTo("+90 555 999 88 77");
         assertThat(result.isActive()).isTrue();
 
         ArgumentCaptor<Factory> factoryCaptor = ArgumentCaptor.forClass(Factory.class);
@@ -132,7 +132,7 @@ class FactoryServiceTest {
         Factory capturedFactory = factoryCaptor.getValue();
         assertThat(capturedFactory.getName()).isEqualTo("New Factory");
         assertThat(capturedFactory.getAddress()).isEqualTo("New Address");
-        assertThat(capturedFactory.getDailyCapacity()).isEqualTo(1200);
+        assertThat(capturedFactory.getPhoneNumber()).isEqualTo("+90 555 999 88 77");
         assertThat(capturedFactory.isActive()).isTrue();
     }
 
@@ -144,7 +144,7 @@ class FactoryServiceTest {
         FactoryRequestDto dto = new FactoryRequestDto(
                 "Updated Factory",
                 "Updated Address",
-                2000,
+                "+90 555 777 66 55",
                 false
         );
         
@@ -157,7 +157,7 @@ class FactoryServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getName()).isEqualTo("Updated Factory");
         assertThat(result.getAddress()).isEqualTo("Updated Address");
-        assertThat(result.getDailyCapacity()).isEqualTo(2000);
+        assertThat(result.getPhoneNumber()).isEqualTo("+90 555 777 66 55");
         assertThat(result.isActive()).isFalse();
 
         verify(factoryRepository).findById(factoryId);
@@ -171,7 +171,7 @@ class FactoryServiceTest {
         FactoryRequestDto dto = new FactoryRequestDto(
                 "Partially Updated Factory",
                 null,  // address güncellenmeyecek
-                null,  // dailyCapacity güncellenmeyecek
+                null,  // phoneNumber güncellenmeyecek
                 null   // active güncellenmeyecek
         );
         
@@ -184,7 +184,7 @@ class FactoryServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getName()).isEqualTo("Partially Updated Factory");
         assertThat(result.getAddress()).isEqualTo("Test Address, Istanbul"); // eski değer
-        assertThat(result.getDailyCapacity()).isEqualTo(1000); // eski değer
+        assertThat(result.getPhoneNumber()).isEqualTo("+90 555 123 45 67"); // eski değer
         assertThat(result.isActive()).isTrue(); // eski değer
 
         verify(factoryRepository).findById(factoryId);
@@ -198,7 +198,7 @@ class FactoryServiceTest {
         FactoryRequestDto dto = new FactoryRequestDto(
                 "Non Existing Factory",
                 "Address",
-                500,
+                "+90 555 888 99 00",
                 true
         );
         
@@ -220,7 +220,6 @@ class FactoryServiceTest {
                 .id(1L)
                 .name("Active Factory")
                 .address("Active Address")
-                .dailyCapacity(800)
                 .active(true)
                 .build();
 
@@ -228,7 +227,7 @@ class FactoryServiceTest {
                 .id(2L)
                 .name("Inactive Factory")
                 .address("Inactive Address")
-                .dailyCapacity(600)
+                .phoneNumber("+90 555 444 55 66")
                 .active(false)
                 .build();
 
@@ -256,7 +255,6 @@ class FactoryServiceTest {
                 .id(1L)
                 .name("Active Factory")
                 .address("Active Address")
-                .dailyCapacity(800)
                 .active(true)
                 .build();
 
@@ -289,7 +287,7 @@ class FactoryServiceTest {
         assertThat(result.id()).isEqualTo(1L);
         assertThat(result.name()).isEqualTo("Test Factory");
         assertThat(result.address()).isEqualTo("Test Address, Istanbul");
-        assertThat(result.dailyCapacity()).isEqualTo(1000);
+        assertThat(result.phoneNumber()).isEqualTo("+90 555 123 45 67");
         assertThat(result.active()).isTrue();
 
         verify(factoryRepository).findById(factoryId);

@@ -94,7 +94,7 @@ class FactoryControllerTest {
                 .id(1L)
                 .name("Test Factory")
                 .address("Test Address")
-                .dailyCapacity(1000)
+                .phoneNumber("+90 555 123 45 67")
                 .active(true)
                 .build();
 
@@ -237,7 +237,7 @@ class FactoryControllerTest {
         FactoryRequestDto requestDto = new FactoryRequestDto(
                 "New Factory",
                 "New Address",
-                1500,
+                "+90 555 999 88 77",
                 true
         );
 
@@ -245,7 +245,7 @@ class FactoryControllerTest {
                 .id(1L)
                 .name("New Factory")
                 .address("New Address")
-                .dailyCapacity(1500)
+
                 .active(true)
                 .build();
 
@@ -259,7 +259,7 @@ class FactoryControllerTest {
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.name").value("New Factory"))
                 .andExpect(jsonPath("$.address").value("New Address"))
-                .andExpect(jsonPath("$.dailyCapacity").value(1500))
+
                 .andExpect(jsonPath("$.active").value(true));
     }
 
@@ -270,7 +270,7 @@ class FactoryControllerTest {
         FactoryRequestDto requestDto = new FactoryRequestDto(
                 "",  // boş isim
                 "Address",
-                1000,
+                "+90 555 111 22 33",
                 true
         );
 
@@ -289,7 +289,7 @@ class FactoryControllerTest {
         FactoryRequestDto requestDto = new FactoryRequestDto(
                 "Updated Factory",
                 "Updated Address",
-                2000,
+                "+90 555 777 66 55",
                 false
         );
 
@@ -297,7 +297,7 @@ class FactoryControllerTest {
                 .id(factoryId)
                 .name("Updated Factory")
                 .address("Updated Address")
-                .dailyCapacity(2000)
+
                 .active(false)
                 .build();
 
@@ -311,7 +311,7 @@ class FactoryControllerTest {
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.name").value("Updated Factory"))
                 .andExpect(jsonPath("$.address").value("Updated Address"))
-                .andExpect(jsonPath("$.dailyCapacity").value(2000))
+
                 .andExpect(jsonPath("$.active").value(false));
     }
 
@@ -323,7 +323,7 @@ class FactoryControllerTest {
         FactoryRequestDto requestDto = new FactoryRequestDto(
                 "Non Existing Factory",
                 "Address",
-                1000,
+                "+90 555 888 99 00",
                 true
         );
 
@@ -342,8 +342,8 @@ class FactoryControllerTest {
     void whenListFactories_withOnlyActiveFalse_thenReturnAllFactories() throws Exception {
         // given
         List<FactoryResponseDto> factories = List.of(
-                new FactoryResponseDto(1L, "Factory 1", "Address 1", 1000, true),
-                new FactoryResponseDto(2L, "Factory 2", "Address 2", 800, false)
+                new FactoryResponseDto(1L, "Factory 1", "Address 1", "+90 555 111 11 11", true),
+                new FactoryResponseDto(2L, "Factory 2", "Address 2", "+90 555 222 22 22", false)
         );
 
         when(factoryService.list(false)).thenReturn(factories);
@@ -367,7 +367,7 @@ class FactoryControllerTest {
     void whenListFactories_withOnlyActiveTrue_thenReturnOnlyActiveFactories() throws Exception {
         // given
         List<FactoryResponseDto> activeFactories = List.of(
-                new FactoryResponseDto(1L, "Active Factory", "Address", 1200, true)
+                new FactoryResponseDto(1L, "Active Factory", "Address", "+90 555 333 33 33", true)
         );
 
         when(factoryService.list(true)).thenReturn(activeFactories);
@@ -388,7 +388,7 @@ class FactoryControllerTest {
     void whenListFactories_withDefaultParams_thenReturnAllFactories() throws Exception {
         // given
         List<FactoryResponseDto> factories = List.of(
-                new FactoryResponseDto(1L, "Factory 1", "Address 1", 1000, true)
+                new FactoryResponseDto(1L, "Factory 1", "Address 1", "+90 555 444 44 44", true)
         );
 
         when(factoryService.list(false)).thenReturn(factories); // default false
@@ -407,7 +407,7 @@ class FactoryControllerTest {
         // given
         Long factoryId = 1L;
         FactoryResponseDto factory = new FactoryResponseDto(
-                factoryId, "Test Factory", "Test Address", 1000, true
+                factoryId, "Test Factory", "Test Address", "+90 555 555 55 55", true
         );
 
         when(factoryService.get(factoryId)).thenReturn(factory);
@@ -418,7 +418,7 @@ class FactoryControllerTest {
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.name").value("Test Factory"))
                 .andExpect(jsonPath("$.address").value("Test Address"))
-                .andExpect(jsonPath("$.dailyCapacity").value(1000))
+
                 .andExpect(jsonPath("$.active").value(true));
     }
 

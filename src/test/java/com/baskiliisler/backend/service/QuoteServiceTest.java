@@ -252,7 +252,7 @@ class QuoteServiceTest {
         void whenGetAllQuotes_thenReturnAllQuotes() {
             // given
             List<Quote> quotes = List.of(testQuote);
-            when(quoteRepository.findAll()).thenReturn(quotes);
+            when(quoteRepository.findAllWithBrand()).thenReturn(quotes);
 
             // when
             List<Quote> result = quoteService.getAllQuotes();
@@ -260,7 +260,7 @@ class QuoteServiceTest {
             // then
             assertThat(result).hasSize(1);
             assertThat(result.get(0)).isEqualTo(testQuote);
-            verify(quoteRepository).findAll();
+            verify(quoteRepository).findAllWithBrand();
         }
 
         @Test
@@ -268,14 +268,14 @@ class QuoteServiceTest {
         void whenGetQuoteById_thenReturnQuote() {
             // given
             Long quoteId = 1L;
-            when(quoteRepository.findByIdWithItems(quoteId)).thenReturn(Optional.of(testQuote));
+            when(quoteRepository.findByIdWithBrandAndItems(quoteId)).thenReturn(Optional.of(testQuote));
 
             // when
             Quote result = quoteService.getQuoteById(quoteId);
 
             // then
             assertThat(result).isEqualTo(testQuote);
-            verify(quoteRepository).findByIdWithItems(quoteId);
+            verify(quoteRepository).findByIdWithBrandAndItems(quoteId);
         }
 
         @Test
@@ -283,14 +283,14 @@ class QuoteServiceTest {
         void whenGetQuoteById_withNonExistentId_thenThrowException() {
             // given
             Long nonExistentId = 999L;
-            when(quoteRepository.findByIdWithItems(nonExistentId)).thenReturn(Optional.empty());
+            when(quoteRepository.findByIdWithBrandAndItems(nonExistentId)).thenReturn(Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> quoteService.getQuoteById(nonExistentId))
                     .isInstanceOf(EntityNotFoundException.class)
                     .hasMessageContaining("Teklif bulunamadı");
 
-            verify(quoteRepository).findByIdWithItems(nonExistentId);
+            verify(quoteRepository).findByIdWithBrandAndItems(nonExistentId);
         }
 
         @Test
@@ -300,7 +300,7 @@ class QuoteServiceTest {
             Long brandId = 1L;
             List<Quote> quotes = List.of(testQuote);
             when(brandRepository.findById(brandId)).thenReturn(Optional.of(testBrand));
-            when(quoteRepository.findByBrand(testBrand)).thenReturn(quotes);
+            when(quoteRepository.findByBrandWithBrand(testBrand)).thenReturn(quotes);
 
             // when
             List<Quote> result = quoteService.getQuotesByBrand(brandId);
@@ -309,7 +309,7 @@ class QuoteServiceTest {
             assertThat(result).hasSize(1);
             assertThat(result.get(0)).isEqualTo(testQuote);
             verify(brandRepository).findById(brandId);
-            verify(quoteRepository).findByBrand(testBrand);
+            verify(quoteRepository).findByBrandWithBrand(testBrand);
         }
     }
 

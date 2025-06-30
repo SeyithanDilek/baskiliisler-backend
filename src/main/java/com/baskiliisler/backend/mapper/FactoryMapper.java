@@ -9,13 +9,13 @@ public class FactoryMapper {
         return Factory.builder()
                 .name(d.name())
                 .address(d.address())
-                .dailyCapacity(d.dailyCapacity())
+                .phoneNumber(d.phoneNumber())
                 .active(d.active() == null || d.active())   // default true
                 .build();
     }
     public static FactoryResponseDto toDto(Factory f) {
         return new FactoryResponseDto(
                 f.getId(), f.getName(), f.getAddress(),
-                f.getDailyCapacity(), f.isActive());
+                f.getPhoneNumber(), f.isActive());
     }
 }

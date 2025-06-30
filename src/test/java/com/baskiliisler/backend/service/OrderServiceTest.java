@@ -112,7 +112,7 @@ class OrderServiceTest {
                 .id(1L)
                 .name("Test Factory")
                 .address("Test Address")
-                .dailyCapacity(100)
+
                 .active(true)
                 .build();
 

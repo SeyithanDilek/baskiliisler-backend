@@ -4,6 +4,6 @@ public record FactoryResponseDto(
         Long id,
         String name,
         String address,
-        Integer dailyCapacity,
+        String phoneNumber,
         boolean active
 ) {}

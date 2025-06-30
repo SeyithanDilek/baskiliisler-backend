@@ -59,7 +59,7 @@ class OrderRepositoryTest {
         testFactory = Factory.builder()
                 .name("Test Factory")
                 .address("Test Address")
-                .dailyCapacity(1000)
+
                 .active(true)
                 .build();
         

@@ -48,7 +48,7 @@ class OrderMapperTest {
                 .id(1L)
                 .name("Test Factory")
                 .address("Test Address")
-                .dailyCapacity(1000)
+                .phoneNumber("+90 555 123 45 67")
                 .active(true)
                 .build();
 

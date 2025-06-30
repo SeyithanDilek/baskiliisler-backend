@@ -32,8 +32,8 @@ public class FactoryService {
                 .orElseThrow(() -> new IllegalArgumentException("Factory not found"));
         if (dto.name() != null)           f.setName(dto.name());
         if (dto.address() != null)        f.setAddress(dto.address());
-        if (dto.dailyCapacity() != null)  f.setDailyCapacity(dto.dailyCapacity());
         if (dto.active() != null)         f.setActive(dto.active());
+        if (dto.phoneNumber() != null)    f.setPhoneNumber(dto.phoneNumber());
         return f;
     }
 
