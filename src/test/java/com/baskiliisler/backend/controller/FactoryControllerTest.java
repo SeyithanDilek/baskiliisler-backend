@@ -282,7 +282,7 @@ class FactoryControllerTest {
     }
 
     @Test
-    @DisplayName("Fabrika güncelleme")
+    @DisplayName("PUT ile fabrika güncelleme")
     void whenUpdateFactory_thenReturnUpdatedFactory() throws Exception {
         // given
         Long factoryId = 1L;
@@ -304,7 +304,7 @@ class FactoryControllerTest {
         when(factoryService.update(eq(factoryId), any(FactoryRequestDto.class))).thenReturn(updatedFactory);
 
         // when & then
-        mockMvc.perform(patch("/factories/{id}", factoryId)
+        mockMvc.perform(put("/factories/{id}", factoryId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isOk())
@@ -331,44 +331,10 @@ class FactoryControllerTest {
                 .thenThrow(new IllegalArgumentException("Factory not found"));
 
         // when & then
-        mockMvc.perform(patch("/factories/{id}", nonExistingId)
+        mockMvc.perform(put("/factories/{id}", nonExistingId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @DisplayName("PUT ile fabrika güncelleme")
-    void whenUpdateFactoryWithPut_thenReturnUpdatedFactory() throws Exception {
-        // given
-        Long factoryId = 1L;
-        FactoryRequestDto requestDto = new FactoryRequestDto(
-                "PUT Updated Factory",
-                "PUT Updated Address",
-                "+90 555 123 45 67",
-                true
-        );
-
-        Factory updatedFactory = Factory.builder()
-                .id(factoryId)
-                .name("PUT Updated Factory")
-                .address("PUT Updated Address")
-                .phoneNumber("+90 555 123 45 67")
-                .active(true)
-                .build();
-
-        when(factoryService.update(eq(factoryId), any(FactoryRequestDto.class))).thenReturn(updatedFactory);
-
-        // when & then
-        mockMvc.perform(put("/factories/{id}", factoryId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.name").value("PUT Updated Factory"))
-                .andExpect(jsonPath("$.address").value("PUT Updated Address"))
-                .andExpect(jsonPath("$.phoneNumber").value("+90 555 123 45 67"))
-                .andExpect(jsonPath("$.active").value(true));
     }
 
     @Test

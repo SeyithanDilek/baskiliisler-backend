@@ -37,7 +37,7 @@ public class FactoryController {
                 .body(FactoryMapper.toDto(factoryService.create(dto)));
     }
 
-    @RequestMapping(value = "/{id}", method = {RequestMethod.PATCH, RequestMethod.PUT})
+    @PutMapping(value = "/{id}")
     public FactoryResponseDto update(@PathVariable Long id,
                                      @RequestBody FactoryRequestDto dto) {
         return FactoryMapper.toDto(factoryService.update(id, dto));
