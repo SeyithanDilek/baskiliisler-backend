@@ -338,6 +338,40 @@ class FactoryControllerTest {
     }
 
     @Test
+    @DisplayName("PUT ile fabrika güncelleme")
+    void whenUpdateFactoryWithPut_thenReturnUpdatedFactory() throws Exception {
+        // given
+        Long factoryId = 1L;
+        FactoryRequestDto requestDto = new FactoryRequestDto(
+                "PUT Updated Factory",
+                "PUT Updated Address",
+                "+90 555 123 45 67",
+                true
+        );
+
+        Factory updatedFactory = Factory.builder()
+                .id(factoryId)
+                .name("PUT Updated Factory")
+                .address("PUT Updated Address")
+                .phoneNumber("+90 555 123 45 67")
+                .active(true)
+                .build();
+
+        when(factoryService.update(eq(factoryId), any(FactoryRequestDto.class))).thenReturn(updatedFactory);
+
+        // when & then
+        mockMvc.perform(put("/factories/{id}", factoryId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.name").value("PUT Updated Factory"))
+                .andExpect(jsonPath("$.address").value("PUT Updated Address"))
+                .andExpect(jsonPath("$.phoneNumber").value("+90 555 123 45 67"))
+                .andExpect(jsonPath("$.active").value(true));
+    }
+
+    @Test
     @DisplayName("Tüm fabrikaları listeleme")
     void whenListFactories_withOnlyActiveFalse_thenReturnAllFactories() throws Exception {
         // given
