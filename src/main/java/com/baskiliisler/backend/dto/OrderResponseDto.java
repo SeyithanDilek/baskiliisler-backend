@@ -15,10 +15,13 @@ public record OrderResponseDto(
         LocalDate deadline,             // üst limit - null olabilir
         LocalDateTime deliveredAt,      // tüm kalemler bitince set edilir
         BigDecimal totalPrice,
+        BrandInfo brand,                // hangi markaya ait
         FactoryInfo factory,            // null: henüz atanmadı
         List<ItemResp> items            // kalem listesi
 ) {
 
+    public record BrandInfo(Long id, String name) {}
+    
     public record FactoryInfo(Long id, String name) {}
 
     public record ItemResp(

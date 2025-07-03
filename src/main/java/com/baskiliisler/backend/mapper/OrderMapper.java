@@ -18,9 +18,18 @@ public class OrderMapper {
                         i.getStatus()))
                 .toList();
 
-        OrderResponseDto.FactoryInfo fi = null;
+        // Brand bilgisi (Order -> Quote -> Brand)
+        OrderResponseDto.BrandInfo brandInfo = null;
+        if (o.getQuote() != null && o.getQuote().getBrand() != null) {
+            brandInfo = new OrderResponseDto.BrandInfo(
+                    o.getQuote().getBrand().getId(),
+                    o.getQuote().getBrand().getName());
+        }
+
+        // Factory bilgisi
+        OrderResponseDto.FactoryInfo factoryInfo = null;
         if (o.getFactory() != null) {
-            fi = new OrderResponseDto.FactoryInfo(
+            factoryInfo = new OrderResponseDto.FactoryInfo(
                     o.getFactory().getId(),
                     o.getFactory().getName());
         }
@@ -32,7 +41,8 @@ public class OrderMapper {
                 o.getDeadline(),
                 o.getDeliveredAt(),
                 o.getTotalPrice(),
-                fi,
+                brandInfo,
+                factoryInfo,
                 itemDtos);
     }
 

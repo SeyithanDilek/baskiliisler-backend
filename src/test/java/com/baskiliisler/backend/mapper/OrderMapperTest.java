@@ -132,6 +132,11 @@ class OrderMapperTest {
         assertThat(result.deliveredAt()).isEqualTo(orderWithFactory.getDeliveredAt());
         assertThat(result.totalPrice()).isEqualTo(BigDecimal.valueOf(2500));
 
+        // Brand bilgisi kontrolü
+        assertThat(result.brand()).isNotNull();
+        assertThat(result.brand().id()).isEqualTo(1L);
+        assertThat(result.brand().name()).isEqualTo("Test Brand");
+
         // Factory bilgisi kontrolü
         assertThat(result.factory()).isNotNull();
         assertThat(result.factory().id()).isEqualTo(1L);
@@ -165,6 +170,11 @@ class OrderMapperTest {
         assertThat(result.deliveredAt()).isEqualTo(orderWithoutFactory.getDeliveredAt());
         assertThat(result.totalPrice()).isEqualTo(BigDecimal.valueOf(2500));
 
+        // Brand bilgisi kontrolü
+        assertThat(result.brand()).isNotNull();
+        assertThat(result.brand().id()).isEqualTo(1L);
+        assertThat(result.brand().name()).isEqualTo("Test Brand");
+
         // Factory bilgisi null olmalı
         assertThat(result.factory()).isNull();
 
@@ -195,6 +205,12 @@ class OrderMapperTest {
         assertThat(result.id()).isEqualTo(3L);
         assertThat(result.status()).isEqualTo(OrderStatus.PENDING);
         assertThat(result.totalPrice()).isEqualTo(BigDecimal.ZERO);
+
+        // Brand bilgisi kontrolü
+        assertThat(result.brand()).isNotNull();
+        assertThat(result.brand().id()).isEqualTo(1L);
+        assertThat(result.brand().name()).isEqualTo("Test Brand");
+
         assertThat(result.factory()).isNotNull();
         assertThat(result.items()).isEmpty();
     }
@@ -238,6 +254,12 @@ class OrderMapperTest {
 
         // then
         assertThat(result).isNotNull();
+
+        // Brand bilgisi kontrolü
+        assertThat(result.brand()).isNotNull();
+        assertThat(result.brand().id()).isEqualTo(1L);
+        assertThat(result.brand().name()).isEqualTo("Test Brand");
+
         assertThat(result.items()).hasSize(1);
         
         OrderResponseDto.ItemResp item = result.items().get(0);
