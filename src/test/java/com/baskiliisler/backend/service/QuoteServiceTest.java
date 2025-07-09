@@ -60,6 +60,9 @@ class QuoteServiceTest {
     @Mock
     private EntityManager entityManager;
 
+    @Mock
+    private com.baskiliisler.backend.notification.service.NotificationService notificationService;
+
     @InjectMocks
     private QuoteService quoteService;
 

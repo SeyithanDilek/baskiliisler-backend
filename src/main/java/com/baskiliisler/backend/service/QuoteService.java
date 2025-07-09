@@ -6,10 +6,12 @@ import com.baskiliisler.backend.model.*;
 import com.baskiliisler.backend.repository.*;
 import com.baskiliisler.backend.type.ProcessStatus;
 import com.baskiliisler.backend.type.QuoteStatus;
+import com.baskiliisler.backend.notification.service.NotificationService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -20,6 +22,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class QuoteService {
 
     private final BrandRepository brandRepo;
@@ -29,6 +32,7 @@ public class QuoteService {
     private final BrandProcessHistoryService brandProcessHistoryService;
     private final OrderService orderService;
     private final EntityManager entityManager;
+    private final NotificationService notificationService;
 
     @Transactional
     public Quote createQuote(QuoteCreateDto quoteCreateDto) {
@@ -60,7 +64,16 @@ public class QuoteService {
         // Transaction'ı flush et ve Quote'u tekrar fetch et
         entityManager.flush();
         entityManager.clear();
-        return quoteRepo.findByIdWithItems(quote.getId()).orElse(quote);
+        Quote finalQuote = quoteRepo.findByIdWithItems(quote.getId()).orElse(quote);
+        
+        // Notification gönder - hata durumunda ana işlem devam etsin
+        try {
+            notificationService.notifyNewQuote(finalQuote);
+        } catch (Exception e) {
+            log.warn("Notification gönderilirken hata oluştu: {}", e.getMessage());
+        }
+        
+        return finalQuote;
     }
 
     @Transactional
@@ -117,6 +130,14 @@ public class QuoteService {
                 ProcessStatus.ORDER_PLACED,  // toStatus
                 ProcessStatus.OFFER_SENT,    // fromStatus
                 "Teklif kabul edildi. Sipariş ID: " + order.getId());
+        
+        // Notification gönder - hata durumunda ana işlem devam etsin
+        try {
+            notificationService.notifyQuoteAccepted(quote, order);
+        } catch (Exception e) {
+            log.warn("Notification gönderilirken hata oluştu: {}", e.getMessage());
+        }
+        
         return order;
     }
 

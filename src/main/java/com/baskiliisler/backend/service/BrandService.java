@@ -8,22 +8,26 @@ import com.baskiliisler.backend.model.Brand;
 import com.baskiliisler.backend.model.BrandProcess;
 import com.baskiliisler.backend.repository.BrandRepository;
 import com.baskiliisler.backend.type.ProcessStatus;
+import com.baskiliisler.backend.notification.service.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BrandService {
 
     private final BrandRepository brandRepository;
     private final BrandProcessService brandProcessService;
     private final BrandProcessHistoryService brandProcessHistoryService;
+    private final NotificationService notificationService;
     private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private final Validator validator = factory.getValidator();
 
@@ -48,6 +52,13 @@ public class BrandService {
                 null,
                 "{\"brandId\":" + brand.getId() + "}");
 
+        // Notification gönder - hata durumunda ana işlem devam etsin
+        try {
+            notificationService.notifyNewBrand(brand);
+        } catch (Exception e) {
+            log.warn("Notification gönderilirken hata oluştu: {}", e.getMessage());
+        }
+        
         return brand;
     }
 

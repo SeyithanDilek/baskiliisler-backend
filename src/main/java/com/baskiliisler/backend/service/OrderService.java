@@ -7,9 +7,11 @@ import com.baskiliisler.backend.model.Quote;
 import com.baskiliisler.backend.repository.OrderRepository;
 import com.baskiliisler.backend.type.OrderStatus;
 import com.baskiliisler.backend.type.ProcessStatus;
+import com.baskiliisler.backend.notification.service.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,12 +21,14 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemService orderItemService;
     private final FactoryService factoryService;
     private final BrandProcessService brandProcessService;
     private final BrandProcessHistoryService brandProcessHistoryService;
+    private final NotificationService notificationService;
 
     @Transactional
     public Order createOrderFromQuote(Quote quote,
@@ -38,6 +42,15 @@ public class OrderService {
                 .build());
 
         orderItemService.assembleAndSaveOrderItems(quote, deadlines, order);
+        
+        // Notification gönder - hata durumunda ana işlem devam etsin
+        try {
+            notificationService.notifyNewOrder(order);
+            notificationService.notifyFactoryAssignmentNeeded(order);
+        } catch (Exception e) {
+            log.warn("Notification gönderilirken hata oluştu: {}", e.getMessage());
+        }
+        
         return order;
     }
 
@@ -97,6 +110,13 @@ public class OrderService {
         // Eğer DELIVERED durumuna geçiyorsa deliveredAt'i set et
         if (newStatus == OrderStatus.DELIVERED && oldStatus != OrderStatus.DELIVERED) {
             order.setDeliveredAt(LocalDateTime.now());
+            
+            // Teslim bildirimi gönder - hata durumunda ana işlem devam etsin
+            try {
+                notificationService.notifyNewOrder(order); // ORDER_DELIVERED için ayrı method ekleyeceğiz
+            } catch (Exception e) {
+                log.warn("Notification gönderilirken hata oluştu: {}", e.getMessage());
+            }
         }
 
         return orderRepository.save(order);

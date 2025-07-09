@@ -52,6 +52,9 @@ class OrderServiceTest {
     @Mock
     private BrandProcessHistoryService brandProcessHistoryService;
 
+    @Mock
+    private com.baskiliisler.backend.notification.service.NotificationService notificationService;
+
     @InjectMocks
     private OrderService orderService;
 
