@@ -4,6 +4,7 @@ import com.baskiliisler.backend.model.*;
 import com.baskiliisler.backend.type.OrderItemStatus;
 import com.baskiliisler.backend.type.OrderStatus;
 import com.baskiliisler.backend.type.QuoteStatus;
+import com.baskiliisler.backend.type.Unit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -67,9 +68,10 @@ class OrderRepositoryTest {
 
         Product testProduct = Product.builder()
                 .name("Test Product")
-                .code("TEST_PROD")
-                .unit("adet")
+                .description("Test Product açıklaması")
+                .unit(Unit.ADET)
                 .unitPrice(BigDecimal.valueOf(100))
+                .taxRate(BigDecimal.valueOf(18.00))
                 .active(true)
                 .build();
         

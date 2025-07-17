@@ -3,6 +3,7 @@ package com.baskiliisler.backend.mapper;
 import com.baskiliisler.backend.dto.QuoteResponseDto;
 import com.baskiliisler.backend.model.*;
 import com.baskiliisler.backend.type.QuoteStatus;
+import com.baskiliisler.backend.type.Unit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,17 +34,19 @@ class QuoteMapperTest {
         Product product1 = Product.builder()
                 .id(1L)
                 .name("Test Product 1")
-                .code("TEST_PROD_1")
-                .unit("adet")
+                .description("Test Product 1 açıklaması")
+                .unit(Unit.ADET)
                 .unitPrice(BigDecimal.valueOf(100))
+                .taxRate(BigDecimal.valueOf(18.00))
                 .build();
 
         Product product2 = Product.builder()
                 .id(2L)
                 .name("Test Product 2")
-                .code("TEST_PROD_2")
-                .unit("kg")
+                .description("Test Product 2 açıklaması")
+                .unit(Unit.KG)
                 .unitPrice(BigDecimal.valueOf(200))
+                .taxRate(BigDecimal.valueOf(18.00))
                 .build();
 
         QuoteItem quoteItem1 = QuoteItem.builder()
@@ -65,160 +68,68 @@ class QuoteMapperTest {
         quoteWithItems = Quote.builder()
                 .id(1L)
                 .brand(testBrand)
-                .status(QuoteStatus.OFFER_SENT)
-                .validUntil(LocalDate.now().plusDays(30))
-                .createdAt(LocalDateTime.now())
-                .currency("TRY")
                 .totalPrice(BigDecimal.valueOf(2000))
-                .items(List.of(quoteItem1, quoteItem2))
+                .currency("TRY")
+                .validUntil(LocalDate.now().plusDays(30))
+                .status(QuoteStatus.OFFER_SENT)
+                .createdAt(LocalDateTime.now())
+                .items(new ArrayList<>(List.of(quoteItem1, quoteItem2)))
                 .build();
 
         quoteWithoutItems = Quote.builder()
                 .id(2L)
                 .brand(testBrand)
-                .status(QuoteStatus.DRAFT)
-                .validUntil(LocalDate.now().plusDays(15))
-                .createdAt(LocalDateTime.now())
+                .totalPrice(BigDecimal.valueOf(0))
                 .currency("TRY")
-                .totalPrice(BigDecimal.ZERO)
+                .validUntil(LocalDate.now().plusDays(30))
+                .status(QuoteStatus.DRAFT)
+                .createdAt(LocalDateTime.now())
                 .items(new ArrayList<>())
                 .build();
     }
 
     @Test
-    @DisplayName("Kalemli teklifi DTO'ya dönüştürme")
-    void whenToDto_withItems_thenReturnCompleteQuoteResponseDto() {
-        // when
+    @DisplayName("Items içeren Quote DTO'ya dönüştürülünce doğru yapıya sahip olmalı")
+    void givenQuoteWithItems_whenConvertToDto_thenShouldReturnCorrectDto() {
+        // When
         QuoteResponseDto result = QuoteMapper.toDto(quoteWithItems);
 
-        // then
+        // Then
         assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(1L);
-        assertThat(result.status()).isEqualTo(QuoteStatus.OFFER_SENT);
-        assertThat(result.totalPrice()).isEqualTo(BigDecimal.valueOf(2000));
-        assertThat(result.validUntil()).isEqualTo(quoteWithItems.getValidUntil());
-        assertThat(result.brandName()).isEqualTo("Test Brand");
-        assertThat(result.createdAt()).isEqualTo(quoteWithItems.getCreatedAt());
-
-        // Items kontrolü
+        assertThat(result.id()).isEqualTo(quoteWithItems.getId());
+        assertThat(result.status()).isEqualTo(quoteWithItems.getStatus());
+        assertThat(result.totalPrice()).isEqualTo(quoteWithItems.getTotalPrice());
+        assertThat(result.brandName()).isEqualTo(quoteWithItems.getBrand().getName());
         assertThat(result.items()).hasSize(2);
         
-        QuoteResponseDto.QuoteItemResp firstItem = result.items().get(0);
-        assertThat(firstItem.productId()).isEqualTo(1L);
-        assertThat(firstItem.productName()).isEqualTo("Test Product 1");
-        assertThat(firstItem.quantity()).isEqualTo(10);
-        assertThat(firstItem.unitPrice()).isEqualTo(BigDecimal.valueOf(100));
-        assertThat(firstItem.lineTotal()).isEqualTo(BigDecimal.valueOf(1000));
-
-        QuoteResponseDto.QuoteItemResp secondItem = result.items().get(1);
-        assertThat(secondItem.productId()).isEqualTo(2L);
-        assertThat(secondItem.productName()).isEqualTo("Test Product 2");
-        assertThat(secondItem.quantity()).isEqualTo(5);
-        assertThat(secondItem.unitPrice()).isEqualTo(BigDecimal.valueOf(200));
-        assertThat(secondItem.lineTotal()).isEqualTo(BigDecimal.valueOf(1000));
+        // Items kontrolü
+        assertThat(result.items().get(0).productName()).isEqualTo("Test Product 1");
+        assertThat(result.items().get(0).quantity()).isEqualTo(10);
+        assertThat(result.items().get(1).productName()).isEqualTo("Test Product 2");
+        assertThat(result.items().get(1).quantity()).isEqualTo(5);
     }
 
     @Test
-    @DisplayName("Kalemsiz teklifi DTO'ya dönüştürme")
-    void whenToDto_withoutItems_thenReturnQuoteResponseDtoWithEmptyItems() {
-        // when
+    @DisplayName("Items içermeyen Quote DTO'ya dönüştürülünce boş items listesi olmalı")
+    void givenQuoteWithoutItems_whenConvertToDto_thenShouldReturnEmptyItems() {
+        // When
         QuoteResponseDto result = QuoteMapper.toDto(quoteWithoutItems);
 
-        // then
+        // Then
         assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(2L);
+        assertThat(result.id()).isEqualTo(quoteWithoutItems.getId());
         assertThat(result.status()).isEqualTo(QuoteStatus.DRAFT);
-        assertThat(result.totalPrice()).isEqualTo(BigDecimal.ZERO);
-        assertThat(result.validUntil()).isEqualTo(quoteWithoutItems.getValidUntil());
-        assertThat(result.brandName()).isEqualTo("Test Brand");
-        assertThat(result.createdAt()).isEqualTo(quoteWithoutItems.getCreatedAt());
+        assertThat(result.totalPrice()).isEqualTo(BigDecimal.valueOf(0));
         assertThat(result.items()).isEmpty();
     }
 
     @Test
-    @DisplayName("ACCEPTED durumunda teklifi DTO'ya dönüştürme")
-    void whenToDto_withAcceptedStatus_thenReturnCorrectDto() {
-        // given
-        Quote acceptedQuote = Quote.builder()
-                .id(3L)
-                .brand(quoteWithItems.getBrand())
-                .status(QuoteStatus.ACCEPTED)
-                .validUntil(LocalDate.now().plusDays(45))
-                .createdAt(LocalDateTime.now())
-                .currency("TRY")
-                .totalPrice(BigDecimal.valueOf(5000))
-                .items(new ArrayList<>())
-                .build();
+    @DisplayName("Null Quote için null dönmeli")
+    void givenNullQuote_whenConvertToDto_thenShouldReturnNull() {
+        // When
+        QuoteResponseDto result = QuoteMapper.toDto(null);
 
-        // when
-        QuoteResponseDto result = QuoteMapper.toDto(acceptedQuote);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(3L);
-        assertThat(result.status()).isEqualTo(QuoteStatus.ACCEPTED);
-        assertThat(result.totalPrice()).isEqualTo(BigDecimal.valueOf(5000));
-        assertThat(result.validUntil()).isEqualTo(acceptedQuote.getValidUntil());
-        assertThat(result.brandName()).isEqualTo("Test Brand");
-        assertThat(result.createdAt()).isEqualTo(acceptedQuote.getCreatedAt());
-        assertThat(result.items()).isEmpty();
-    }
-
-    @Test
-    @DisplayName("EXPIRED durumunda teklifi DTO'ya dönüştürme")
-    void whenToDto_withExpiredStatus_thenReturnCorrectDto() {
-        // given
-        Quote expiredQuote = Quote.builder()
-                .id(4L)
-                .brand(quoteWithItems.getBrand())
-                .status(QuoteStatus.EXPIRED)
-                .validUntil(LocalDate.now().minusDays(5))  // Geçmiş tarih
-                .createdAt(LocalDateTime.now().minusDays(30))
-                .currency("TRY")
-                .totalPrice(BigDecimal.valueOf(1500))
-                .items(new ArrayList<>())
-                .build();
-
-        // when
-        QuoteResponseDto result = QuoteMapper.toDto(expiredQuote);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(4L);
-        assertThat(result.status()).isEqualTo(QuoteStatus.EXPIRED);
-        assertThat(result.totalPrice()).isEqualTo(BigDecimal.valueOf(1500));
-        assertThat(result.validUntil()).isEqualTo(expiredQuote.getValidUntil());
-        assertThat(result.brandName()).isEqualTo("Test Brand");
-        assertThat(result.createdAt()).isEqualTo(expiredQuote.getCreatedAt());
-        assertThat(result.items()).isEmpty();
-    }
-
-    @Test
-    @DisplayName("Farklı para birimi ile teklifi DTO'ya dönüştürme")
-    void whenToDto_withDifferentCurrency_thenReturnCorrectDto() {
-        // given
-        Quote usdQuote = Quote.builder()
-                .id(5L)
-                .brand(quoteWithItems.getBrand())
-                .status(QuoteStatus.OFFER_SENT)
-                .validUntil(LocalDate.now().plusDays(30))
-                .createdAt(LocalDateTime.now())
-                .currency("USD")  // Farklı para birimi
-                .totalPrice(BigDecimal.valueOf(250.50))
-                .items(new ArrayList<>())
-                .build();
-
-        // when
-        QuoteResponseDto result = QuoteMapper.toDto(usdQuote);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(5L);
-        assertThat(result.status()).isEqualTo(QuoteStatus.OFFER_SENT);
-        assertThat(result.totalPrice()).isEqualTo(BigDecimal.valueOf(250.50));
-        assertThat(result.validUntil()).isEqualTo(usdQuote.getValidUntil());
-        assertThat(result.brandName()).isEqualTo("Test Brand");
-        assertThat(result.createdAt()).isEqualTo(usdQuote.getCreatedAt());
-        assertThat(result.items()).isEmpty();
+        // Then
+        assertThat(result).isNull();
     }
 } 

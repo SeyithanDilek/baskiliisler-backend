@@ -21,19 +21,7 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     public Product createProduct(ProductRequestDto dto) {
-        // Kod benzersizliği kontrolü
-        if (productRepository.existsByCode(dto.code())) {
-            throw new IllegalArgumentException("Bu kod ile bir ürün zaten mevcut: " + dto.code());
-        }
-
-        Product product = Product.builder()
-                .code(dto.code())
-                .name(dto.name())
-                .unit(dto.unit())
-                .unitPrice(dto.unitPrice())
-                .active(true)
-                .build();
-
+        Product product = ProductMapper.toEntity(dto);
         return productRepository.save(product);
     }
 
@@ -54,38 +42,11 @@ public class ProductService {
         return ProductMapper.toResponseDto(product);
     }
 
-    @Transactional(readOnly = true)
-    public ProductResponseDto findByCode(String code) {
-        Product product = productRepository.findByCode(code)
-                .orElseThrow(() -> new EntityNotFoundException("Ürün bulunamadı: " + code));
-        return ProductMapper.toResponseDto(product);
-    }
-
     public ProductResponseDto updateProduct(Long id, ProductUpdateDto dto) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Ürün bulunamadı: " + id));
 
-        // Kod güncelleniyorsa benzersizlik kontrolü
-        if (dto.code() != null && !dto.code().equals(product.getCode())) {
-            if (productRepository.existsByCode(dto.code())) {
-                throw new IllegalArgumentException("Bu kod ile bir ürün zaten mevcut: " + dto.code());
-            }
-            product.setCode(dto.code());
-        }
-
-        if (dto.name() != null) {
-            product.setName(dto.name());
-        }
-        if (dto.unit() != null) {
-            product.setUnit(dto.unit());
-        }
-        if (dto.unitPrice() != null) {
-            product.setUnitPrice(dto.unitPrice());
-        }
-        if (dto.active() != null) {
-            product.setActive(dto.active());
-        }
-
+        ProductMapper.updateProductFromDto(product, dto);
         Product savedProduct = productRepository.save(product);
         return ProductMapper.toResponseDto(savedProduct);
     }

@@ -5,6 +5,7 @@ import com.baskiliisler.backend.repository.OrderItemRepository;
 import com.baskiliisler.backend.type.OrderItemStatus;
 import com.baskiliisler.backend.type.OrderStatus;
 import com.baskiliisler.backend.type.QuoteStatus;
+import com.baskiliisler.backend.type.Unit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,17 +52,19 @@ class OrderItemServiceTest {
         testProduct1 = Product.builder()
                 .id(1L)
                 .name("Test Product 1")
-                .code("TEST_PROD_1")
-                .unit("adet")
+                .description("Test Product 1 açıklaması")
+                .unit(Unit.ADET)
                 .unitPrice(BigDecimal.valueOf(100))
+                .taxRate(BigDecimal.valueOf(18.00))
                 .build();
 
         testProduct2 = Product.builder()
                 .id(2L)
                 .name("Test Product 2")
-                .code("TEST_PROD_2")
-                .unit("kg")
+                .description("Test Product 2 açıklaması")
+                .unit(Unit.KG)
                 .unitPrice(BigDecimal.valueOf(200))
+                .taxRate(BigDecimal.valueOf(18.00))
                 .build();
 
         testQuoteItem1 = QuoteItem.builder()

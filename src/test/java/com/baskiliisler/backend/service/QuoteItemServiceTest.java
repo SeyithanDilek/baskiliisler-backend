@@ -8,6 +8,7 @@ import com.baskiliisler.backend.model.QuoteItem;
 import com.baskiliisler.backend.repository.ProductRepository;
 import com.baskiliisler.backend.repository.QuoteItemRepository;
 import com.baskiliisler.backend.type.QuoteStatus;
+import com.baskiliisler.backend.type.Unit;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -67,7 +68,10 @@ class QuoteItemServiceTest {
         testProduct = Product.builder()
                 .id(1L)
                 .name("Test Product")
-                .code("TEST001")
+                .description("Test product description")
+                .unit(Unit.ADET)
+                .unitPrice(BigDecimal.valueOf(100))
+                .taxRate(BigDecimal.valueOf(18.00))
                 .build();
 
         testItemRequest = new QuoteItemRequestDto(

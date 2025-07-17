@@ -95,9 +95,26 @@ public class BrandService {
 
     @Transactional
     public void deleteBrand(Long id) {
+        Brand brand = brandRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Brand not found"));
+        
+        // Brand process kontrolü
         if (brandProcessService.existsBrandProcess(id)) {
-            throw new IllegalStateException("Süreç devam ediyor, marka silinemez");
+            ProcessStatus currentStatus = brandProcessService.getProcessStatus(id);
+            
+            // Sadece SAMPLE_LEFT durumunda silinebilir
+            if (currentStatus != ProcessStatus.SAMPLE_LEFT) {
+                throw new IllegalStateException(
+                    "Marka sadece numune bırakıldı (SAMPLE_LEFT) durumunda silinebilir. " +
+                    "Mevcut durum: " + currentStatus.name()
+                );
+            }
+            
+            log.info("SAMPLE_LEFT durumunda marka siliniyor: {} (ID: {})", brand.getName(), id);
         }
+        
+        // Marka silme işlemi
         brandRepository.deleteById(id);
+        log.info("Brand başarıyla silindi: {} (ID: {})", brand.getName(), id);
     }
 }

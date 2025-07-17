@@ -53,12 +53,6 @@ public class ProductController {
         return productService.findById(id);
     }
 
-    @GetMapping("/code/{code}")
-    @Operation(summary = "Kod ile ürün getir", description = "Belirtilen koda sahip ürünü getirir")
-    public ProductResponseDto getByCode(@PathVariable String code) {
-        return productService.findByCode(code);
-    }
-
     @PatchMapping("/{id}")
     @Operation(summary = "Ürün güncelle", description = "Belirtilen ID'ye sahip ürünü günceller")
     public ProductResponseDto updateProduct(@PathVariable Long id,

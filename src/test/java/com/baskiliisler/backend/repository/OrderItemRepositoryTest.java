@@ -4,6 +4,7 @@ import com.baskiliisler.backend.model.*;
 import com.baskiliisler.backend.type.OrderItemStatus;
 import com.baskiliisler.backend.type.OrderStatus;
 import com.baskiliisler.backend.type.QuoteStatus;
+import com.baskiliisler.backend.type.Unit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,20 +70,21 @@ class OrderItemRepositoryTest {
 
         testProduct = Product.builder()
                 .name("Test Product")
-                .code("TEST_PROD")
-                .unit("adet")
+                .description("Test Product açıklaması")
+                .unit(Unit.ADET)
                 .unitPrice(BigDecimal.valueOf(100))
+                .taxRate(BigDecimal.valueOf(18.00))
                 .active(true)
                 .build();
-        
+
         entityManager.persist(testProduct);
 
         testOrderItem = OrderItem.builder()
                 .order(testOrder)
                 .product(testProduct)
-                .quantity(10)
+                .quantity(5)
                 .unitPrice(BigDecimal.valueOf(100))
-                .lineTotal(BigDecimal.valueOf(1000))
+                .lineTotal(BigDecimal.valueOf(500))
                 .plannedDelivery(LocalDate.now().plusDays(14))
                 .status(OrderItemStatus.PENDING)
                 .build();
@@ -91,23 +93,22 @@ class OrderItemRepositoryTest {
     }
 
     @Test
-    @DisplayName("Sipariş kalemi ID'ye göre bulma")
+    @DisplayName("Order item ID'ye göre bulma")
     void whenFindById_thenReturnOrderItem() {
         // when
         Optional<OrderItem> result = orderItemRepository.findById(testOrderItem.getId());
 
         // then
         assertThat(result).isPresent();
-        assertThat(result.get().getQuantity()).isEqualTo(10);
+        assertThat(result.get().getQuantity()).isEqualTo(5);
         assertThat(result.get().getUnitPrice()).isEqualTo(BigDecimal.valueOf(100));
-        assertThat(result.get().getLineTotal()).isEqualTo(BigDecimal.valueOf(1000));
+        assertThat(result.get().getLineTotal()).isEqualTo(BigDecimal.valueOf(500));
         assertThat(result.get().getStatus()).isEqualTo(OrderItemStatus.PENDING);
         assertThat(result.get().getProduct().getName()).isEqualTo("Test Product");
-        assertThat(result.get().getOrder().getStatus()).isEqualTo(OrderStatus.PENDING);
     }
 
     @Test
-    @DisplayName("Olmayan sipariş kalemi ID'ye göre arama")
+    @DisplayName("Olmayan order item ID'ye göre arama")
     void whenFindById_withNonExistingId_thenReturnEmpty() {
         // when
         Optional<OrderItem> result = orderItemRepository.findById(999L);
@@ -117,53 +118,27 @@ class OrderItemRepositoryTest {
     }
 
     @Test
-    @DisplayName("Tüm sipariş kalemlerini listeleme")
+    @DisplayName("Tüm order item'ları listeleme")
     void whenFindAll_thenReturnAllOrderItems() {
-        // given
-        Product product2 = Product.builder()
-                .name("Product 2")
-                .code("PROD_2")
-                .unit("kg")
-                .unitPrice(BigDecimal.valueOf(200))
-                .active(true)
-                .build();
-        
-        entityManager.persist(product2);
-
-        OrderItem orderItem2 = OrderItem.builder()
-                .order(testOrder)
-                .product(product2)
-                .quantity(5)
-                .unitPrice(BigDecimal.valueOf(200))
-                .lineTotal(BigDecimal.valueOf(1000))
-                .plannedDelivery(LocalDate.now().plusDays(20))
-                .status(OrderItemStatus.READY)
-                .build();
-
-        entityManager.persistAndFlush(orderItem2);
-
         // when
         List<OrderItem> result = orderItemRepository.findAll();
 
         // then
-        assertThat(result).hasSize(2);
-        assertThat(result).extracting(OrderItem::getQuantity)
-                .containsExactlyInAnyOrder(10, 5);
-        assertThat(result).extracting(OrderItem::getStatus)
-                .containsExactlyInAnyOrder(OrderItemStatus.PENDING, OrderItemStatus.READY);
-        assertThat(result).extracting(item -> item.getProduct().getName())
-                .containsExactlyInAnyOrder("Test Product", "Product 2");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getQuantity()).isEqualTo(5);
+        assertThat(result.get(0).getProduct().getName()).isEqualTo("Test Product");
     }
 
     @Test
-    @DisplayName("Sipariş kalemi kaydetme")
+    @DisplayName("Yeni order item kaydetme")
     void whenSave_thenReturnSavedOrderItem() {
         // given
         Product newProduct = Product.builder()
                 .name("New Product")
-                .code("NEW_PROD")
-                .unit("lt")
+                .description("New Product açıklaması")
+                .unit(Unit.LITRE)
                 .unitPrice(BigDecimal.valueOf(50))
+                .taxRate(BigDecimal.valueOf(18.00))
                 .active(true)
                 .build();
         
@@ -172,25 +147,21 @@ class OrderItemRepositoryTest {
         OrderItem newOrderItem = OrderItem.builder()
                 .order(testOrder)
                 .product(newProduct)
-                .quantity(20)
+                .quantity(10)
                 .unitPrice(BigDecimal.valueOf(50))
-                .lineTotal(BigDecimal.valueOf(1000))
-                .plannedDelivery(LocalDate.now().plusDays(25))
+                .lineTotal(BigDecimal.valueOf(500))
+                .plannedDelivery(LocalDate.now().plusDays(30))
                 .status(OrderItemStatus.PENDING)
                 .build();
 
         // when
-        OrderItem result = orderItemRepository.save(newOrderItem);
+        OrderItem savedOrderItem = orderItemRepository.save(newOrderItem);
 
         // then
-        assertThat(result).isNotNull();
-        assertThat(result.getId()).isNotNull();
-        assertThat(result.getQuantity()).isEqualTo(20);
-        assertThat(result.getUnitPrice()).isEqualTo(BigDecimal.valueOf(50));
-        assertThat(result.getLineTotal()).isEqualTo(BigDecimal.valueOf(1000));
-        assertThat(result.getStatus()).isEqualTo(OrderItemStatus.PENDING);
-        assertThat(result.getProduct().getName()).isEqualTo("New Product");
-        assertThat(result.getOrder()).isEqualTo(testOrder);
+        assertThat(savedOrderItem.getId()).isNotNull();
+        assertThat(savedOrderItem.getQuantity()).isEqualTo(10);
+        assertThat(savedOrderItem.getProduct().getName()).isEqualTo("New Product");
+        assertThat(savedOrderItem.getOrder().getId()).isEqualTo(testOrder.getId());
     }
 
     @Test

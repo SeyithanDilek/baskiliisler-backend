@@ -7,6 +7,10 @@ import java.util.List;
 
 public class OrderMapper {
     public static OrderResponseDto toDto(Order o) {
+        if (o == null) {
+            return null;
+        }
+        
         List<OrderResponseDto.ItemResp> itemDtos = o.getItems().stream()
                 .map(i -> new OrderResponseDto.ItemResp(
                         i.getProduct().getId(),

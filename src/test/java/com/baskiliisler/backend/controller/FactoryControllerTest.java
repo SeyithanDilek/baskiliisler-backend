@@ -10,6 +10,7 @@ import com.baskiliisler.backend.service.OrderService;
 import com.baskiliisler.backend.type.OrderItemStatus;
 import com.baskiliisler.backend.type.OrderStatus;
 import com.baskiliisler.backend.type.QuoteStatus;
+import com.baskiliisler.backend.type.Unit;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -101,9 +102,10 @@ class FactoryControllerTest {
         Product testProduct = Product.builder()
                 .id(1L)
                 .name("Test Product")
-                .code("TEST_PROD")
-                .unit("adet")
+                .description("Test Product açıklaması")
+                .unit(Unit.ADET)
                 .unitPrice(BigDecimal.valueOf(100))
+                .taxRate(BigDecimal.valueOf(18.00))
                 .build();
 
         OrderItem orderItem = OrderItem.builder()

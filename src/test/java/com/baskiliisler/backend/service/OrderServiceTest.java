@@ -5,6 +5,7 @@ import com.baskiliisler.backend.repository.OrderRepository;
 import com.baskiliisler.backend.type.OrderStatus;
 import com.baskiliisler.backend.type.ProcessStatus;
 import com.baskiliisler.backend.type.QuoteStatus;
+import com.baskiliisler.backend.type.Unit;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -76,9 +77,10 @@ class OrderServiceTest {
         Product testProduct = Product.builder()
                 .id(1L)
                 .name("Test Product")
-                .code("TEST_PROD")
-                .unit("adet")
+                .description("Test product description")
+                .unit(Unit.ADET)
                 .unitPrice(BigDecimal.valueOf(100))
+                .taxRate(BigDecimal.valueOf(18.00))
                 .build();
 
         QuoteItem testQuoteItem = QuoteItem.builder()

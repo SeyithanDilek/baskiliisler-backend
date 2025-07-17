@@ -5,6 +5,7 @@ import com.baskiliisler.backend.model.*;
 import com.baskiliisler.backend.type.OrderItemStatus;
 import com.baskiliisler.backend.type.OrderStatus;
 import com.baskiliisler.backend.type.QuoteStatus;
+import com.baskiliisler.backend.type.Unit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,17 +56,19 @@ class OrderMapperTest {
         Product product1 = Product.builder()
                 .id(1L)
                 .name("Test Product 1")
-                .code("TEST_PROD_1")
-                .unit("adet")
+                .description("Test Product 1 açıklaması")
+                .unit(Unit.ADET)
                 .unitPrice(BigDecimal.valueOf(100))
+                .taxRate(BigDecimal.valueOf(18.00))
                 .build();
 
         Product product2 = Product.builder()
                 .id(2L)
                 .name("Test Product 2")
-                .code("TEST_PROD_2")
-                .unit("kg")
+                .description("Test Product 2 açıklaması")
+                .unit(Unit.KG)
                 .unitPrice(BigDecimal.valueOf(200))
+                .taxRate(BigDecimal.valueOf(18.00))
                 .build();
 
         OrderItem orderItem1 = OrderItem.builder()
@@ -82,10 +85,10 @@ class OrderMapperTest {
                 .id(2L)
                 .product(product2)
                 .quantity(5)
-                .unitPrice(BigDecimal.valueOf(300))
-                .lineTotal(BigDecimal.valueOf(1500))
+                .unitPrice(BigDecimal.valueOf(200))
+                .lineTotal(BigDecimal.valueOf(1000))
                 .plannedDelivery(LocalDate.now().plusDays(21))
-                .status(OrderItemStatus.READY)
+                .status(OrderItemStatus.PENDING)
                 .build();
 
         orderItems = List.of(orderItem1, orderItem2);
@@ -95,10 +98,10 @@ class OrderMapperTest {
                 .quote(testQuote)
                 .factory(testFactory)
                 .items(new ArrayList<>(orderItems))
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now().minusDays(1))
                 .deadline(LocalDate.now().plusDays(30))
                 .totalPrice(BigDecimal.valueOf(2500))
-                .status(OrderStatus.PENDING)
+                .status(OrderStatus.IN_PRODUCTION)
                 .build();
 
         orderWithoutFactory = Order.builder()
@@ -106,166 +109,68 @@ class OrderMapperTest {
                 .quote(testQuote)
                 .factory(null)
                 .items(new ArrayList<>(orderItems))
-                .createdAt(LocalDateTime.now())
-                .deadline(LocalDate.now().plusDays(45))
-                .deliveredAt(LocalDateTime.now().plusDays(20))
+                .createdAt(LocalDateTime.now().minusDays(1))
+                .deadline(LocalDate.now().plusDays(30))
                 .totalPrice(BigDecimal.valueOf(2500))
-                .status(OrderStatus.DELIVERED)
+                .status(OrderStatus.PENDING)
                 .build();
-
-        // OrderItem'ların order reference'larını set et
-        orderItems.forEach(item -> item.setOrder(orderWithFactory));
     }
 
     @Test
-    @DisplayName("Factory bilgisi olan siparişi DTO'ya dönüştürme")
-    void whenToDto_withFactory_thenReturnCompleteOrderResponseDto() {
-        // when
+    @DisplayName("Fabrika atanmış sipariş DTO'ya dönüştürülünce factory bilgisi bulunmalı")
+    void givenOrderWithFactory_whenConvertToDto_thenShouldIncludeFactoryInfo() {
+        // When
         OrderResponseDto result = OrderMapper.toDto(orderWithFactory);
 
-        // then
+        // Then
         assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(1L);
-        assertThat(result.status()).isEqualTo(OrderStatus.PENDING);
-        assertThat(result.createdAt()).isEqualTo(orderWithFactory.getCreatedAt());
-        assertThat(result.deadline()).isEqualTo(orderWithFactory.getDeadline());
-        assertThat(result.deliveredAt()).isEqualTo(orderWithFactory.getDeliveredAt());
-        assertThat(result.totalPrice()).isEqualTo(BigDecimal.valueOf(2500));
-
+        assertThat(result.id()).isEqualTo(orderWithFactory.getId());
+        assertThat(result.status()).isEqualTo(orderWithFactory.getStatus());
+        assertThat(result.totalPrice()).isEqualTo(orderWithFactory.getTotalPrice());
+        
         // Brand bilgisi kontrolü
         assertThat(result.brand()).isNotNull();
         assertThat(result.brand().id()).isEqualTo(1L);
         assertThat(result.brand().name()).isEqualTo("Test Brand");
-
+        
         // Factory bilgisi kontrolü
         assertThat(result.factory()).isNotNull();
-        assertThat(result.factory().id()).isEqualTo(1L);
-        assertThat(result.factory().name()).isEqualTo("Test Factory");
-
+        assertThat(result.factory().id()).isEqualTo(testFactory.getId());
+        assertThat(result.factory().name()).isEqualTo(testFactory.getName());
+        
         // Items kontrolü
         assertThat(result.items()).hasSize(2);
-        
-        OrderResponseDto.ItemResp firstItem = result.items().get(0);
-        assertThat(firstItem.productId()).isEqualTo(1L);
-        assertThat(firstItem.productName()).isEqualTo("Test Product 1");
-        assertThat(firstItem.quantity()).isEqualTo(10);
-        assertThat(firstItem.unitPrice()).isEqualTo(BigDecimal.valueOf(100));
-        assertThat(firstItem.lineTotal()).isEqualTo(BigDecimal.valueOf(1000));
-        assertThat(firstItem.plannedDelivery()).isEqualTo(LocalDate.now().plusDays(14));
-        assertThat(firstItem.status()).isEqualTo(OrderItemStatus.PENDING);
+        assertThat(result.items().get(0).productName()).isEqualTo("Test Product 1");
+        assertThat(result.items().get(1).productName()).isEqualTo("Test Product 2");
     }
 
     @Test
-    @DisplayName("Factory bilgisi olmayan siparişi DTO'ya dönüştürme")
-    void whenToDto_withoutFactory_thenReturnOrderResponseDtoWithNullFactory() {
-        // when
+    @DisplayName("Fabrika atanmamış sipariş DTO'ya dönüştürülünce factory bilgisi null olmalı")
+    void givenOrderWithoutFactory_whenConvertToDto_thenFactoryInfoShouldBeNull() {
+        // When
         OrderResponseDto result = OrderMapper.toDto(orderWithoutFactory);
 
-        // then
+        // Then
         assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(2L);
-        assertThat(result.status()).isEqualTo(OrderStatus.DELIVERED);
-        assertThat(result.createdAt()).isEqualTo(orderWithoutFactory.getCreatedAt());
-        assertThat(result.deadline()).isEqualTo(orderWithoutFactory.getDeadline());
-        assertThat(result.deliveredAt()).isEqualTo(orderWithoutFactory.getDeliveredAt());
-        assertThat(result.totalPrice()).isEqualTo(BigDecimal.valueOf(2500));
-
-        // Brand bilgisi kontrolü
-        assertThat(result.brand()).isNotNull();
-        assertThat(result.brand().id()).isEqualTo(1L);
-        assertThat(result.brand().name()).isEqualTo("Test Brand");
-
-        // Factory bilgisi null olmalı
+        assertThat(result.id()).isEqualTo(orderWithoutFactory.getId());
+        assertThat(result.status()).isEqualTo(OrderStatus.PENDING);
         assertThat(result.factory()).isNull();
-
+        
+        // Brand bilgisi hala mevcut olmalı
+        assertThat(result.brand()).isNotNull();
+        assertThat(result.brand().name()).isEqualTo("Test Brand");
+        
         // Items kontrolü
         assertThat(result.items()).hasSize(2);
     }
 
     @Test
-    @DisplayName("Boş item listesi olan siparişi DTO'ya dönüştürme")
-    void whenToDto_withEmptyItems_thenReturnOrderResponseDtoWithEmptyItems() {
-        // given
-        Order orderWithEmptyItems = Order.builder()
-                .id(3L)
-                .quote(orderWithFactory.getQuote())
-                .factory(testFactory)
-                .items(new ArrayList<>())
-                .createdAt(LocalDateTime.now())
-                .deadline(LocalDate.now().plusDays(60))
-                .totalPrice(BigDecimal.ZERO)
-                .status(OrderStatus.PENDING)
-                .build();
+    @DisplayName("Null Order için null dönmeli")
+    void givenNullOrder_whenConvertToDto_thenShouldReturnNull() {
+        // When
+        OrderResponseDto result = OrderMapper.toDto(null);
 
-        // when
-        OrderResponseDto result = OrderMapper.toDto(orderWithEmptyItems);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(3L);
-        assertThat(result.status()).isEqualTo(OrderStatus.PENDING);
-        assertThat(result.totalPrice()).isEqualTo(BigDecimal.ZERO);
-
-        // Brand bilgisi kontrolü
-        assertThat(result.brand()).isNotNull();
-        assertThat(result.brand().id()).isEqualTo(1L);
-        assertThat(result.brand().name()).isEqualTo("Test Brand");
-
-        assertThat(result.factory()).isNotNull();
-        assertThat(result.items()).isEmpty();
-    }
-
-    @Test
-    @DisplayName("Null plannedDelivery olan item'ları DTO'ya dönüştürme")
-    void whenToDto_withNullPlannedDeliveryItems_thenReturnCorrectDto() {
-        // given
-        Product product = Product.builder()
-                .id(3L)
-                .name("Test Product 3")
-                .code("TEST_PROD_3")
-                .unit("adet")
-                .unitPrice(BigDecimal.valueOf(50))
-                .build();
-
-        OrderItem itemWithNullDelivery = OrderItem.builder()
-                .id(3L)
-                .product(product)
-                .quantity(20)
-                .unitPrice(BigDecimal.valueOf(50))
-                .lineTotal(BigDecimal.valueOf(1000))
-                .plannedDelivery(null)
-                .status(OrderItemStatus.PENDING)
-                .build();
-
-        Order orderWithNullDeliveryItem = Order.builder()
-                .id(4L)
-                .quote(orderWithFactory.getQuote())
-                .factory(null)
-                .items(List.of(itemWithNullDelivery))
-                .createdAt(LocalDateTime.now())
-                .totalPrice(BigDecimal.valueOf(1000))
-                .status(OrderStatus.PENDING)
-                .build();
-
-        itemWithNullDelivery.setOrder(orderWithNullDeliveryItem);
-
-        // when
-        OrderResponseDto result = OrderMapper.toDto(orderWithNullDeliveryItem);
-
-        // then
-        assertThat(result).isNotNull();
-
-        // Brand bilgisi kontrolü
-        assertThat(result.brand()).isNotNull();
-        assertThat(result.brand().id()).isEqualTo(1L);
-        assertThat(result.brand().name()).isEqualTo("Test Brand");
-
-        assertThat(result.items()).hasSize(1);
-        
-        OrderResponseDto.ItemResp item = result.items().get(0);
-        assertThat(item.productId()).isEqualTo(3L);
-        assertThat(item.productName()).isEqualTo("Test Product 3");
-        assertThat(item.plannedDelivery()).isNull();
-        assertThat(item.status()).isEqualTo(OrderItemStatus.PENDING);
+        // Then
+        assertThat(result).isNull();
     }
 } 

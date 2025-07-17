@@ -2,6 +2,7 @@ package com.baskiliisler.backend.repository;
 
 import com.baskiliisler.backend.model.*;
 import com.baskiliisler.backend.type.QuoteStatus;
+import com.baskiliisler.backend.type.Unit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -56,9 +57,10 @@ class QuoteItemRepositoryTest {
 
         testProduct = Product.builder()
                 .name("Test Product")
-                .code("TEST_PROD")
-                .unit("adet")
+                .description("Test product description")
+                .unit(Unit.ADET)
                 .unitPrice(BigDecimal.valueOf(100))
+                .taxRate(BigDecimal.valueOf(18.00))
                 .active(true)
                 .build();
         
@@ -106,9 +108,10 @@ class QuoteItemRepositoryTest {
         // given
         Product product2 = Product.builder()
                 .name("Product 2")
-                .code("PROD_2")
-                .unit("kg")
+                .description("Product 2 description")
+                .unit(Unit.KG)
                 .unitPrice(BigDecimal.valueOf(200))
+                .taxRate(BigDecimal.valueOf(18.00))
                 .active(true)
                 .build();
         
@@ -141,9 +144,10 @@ class QuoteItemRepositoryTest {
         // given
         Product newProduct = Product.builder()
                 .name("New Product")
-                .code("NEW_PROD")
-                .unit("lt")
+                .description("New product description")
+                .unit(Unit.LITRE)
                 .unitPrice(BigDecimal.valueOf(50))
+                .taxRate(BigDecimal.valueOf(18.00))
                 .active(true)
                 .build();
         

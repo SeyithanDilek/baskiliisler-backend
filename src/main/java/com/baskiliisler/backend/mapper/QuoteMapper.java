@@ -8,6 +8,10 @@ import java.util.List;
 
 public class QuoteMapper {
     public static QuoteResponseDto toDto(Quote q) {
+        if (q == null) {
+            return null;
+        }
+        
         List<QuoteResponseDto.QuoteItemResp> items = q.getItems() != null ? 
             q.getItems().stream()
                 .map(i -> new QuoteResponseDto.QuoteItemResp(

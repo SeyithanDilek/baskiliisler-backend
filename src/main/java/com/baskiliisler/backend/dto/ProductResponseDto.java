@@ -1,12 +1,14 @@
 package com.baskiliisler.backend.dto;
 
+import com.baskiliisler.backend.type.Unit;
 import java.math.BigDecimal;
 
 public record ProductResponseDto(
         Long id,
-        String code,
         String name,
-        String unit,
+        String description,
+        Unit unit,
         BigDecimal unitPrice,
+        BigDecimal taxRate,
         boolean active
 ) {} 

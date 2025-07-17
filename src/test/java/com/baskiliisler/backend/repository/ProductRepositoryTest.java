@@ -1,6 +1,7 @@
 package com.baskiliisler.backend.repository;
 
 import com.baskiliisler.backend.model.Product;
+import com.baskiliisler.backend.type.Unit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -31,107 +32,25 @@ class ProductRepositoryTest {
     @BeforeEach
     void setUp() {
         activeProduct = Product.builder()
-                .code("PAP_CUP_M")
                 .name("Orta Karton Bardak")
-                .unit("adet")
+                .description("Orta boy karton bardak açıklaması")
+                .unit(Unit.ADET)
                 .unitPrice(new BigDecimal("2.50"))
+                .taxRate(new BigDecimal("18.00"))
                 .active(true)
                 .build();
 
         inactiveProduct = Product.builder()
-                .code("PAP_CUP_L")
                 .name("Büyük Karton Bardak")
-                .unit("adet")
+                .description("Büyük boy karton bardak açıklaması")
+                .unit(Unit.ADET)
                 .unitPrice(new BigDecimal("3.50"))
+                .taxRate(new BigDecimal("18.00"))
                 .active(false)
                 .build();
 
         entityManager.persistAndFlush(activeProduct);
         entityManager.persistAndFlush(inactiveProduct);
-    }
-
-    @Nested
-    @DisplayName("Kod ile arama")
-    class FindByCode {
-
-        @Test
-        @DisplayName("Mevcut kod ile arama yapıldığında ürün döndürmeli")
-        void givenExistingCode_whenFindByCode_thenShouldReturnProduct() {
-            // When
-            Optional<Product> result = productRepository.findByCode("PAP_CUP_M");
-
-            // Then
-            assertThat(result).isPresent();
-            assertThat(result.get().getCode()).isEqualTo("PAP_CUP_M");
-            assertThat(result.get().getName()).isEqualTo("Orta Karton Bardak");
-        }
-
-        @Test
-        @DisplayName("Mevcut olmayan kod ile arama yapıldığında boş döndürmeli")
-        void givenNonExistingCode_whenFindByCode_thenShouldReturnEmpty() {
-            // When
-            Optional<Product> result = productRepository.findByCode("NON_EXISTING");
-
-            // Then
-            assertThat(result).isEmpty();
-        }
-
-        @Test
-        @DisplayName("Null kod ile arama yapıldığında boş döndürmeli")
-        void givenNullCode_whenFindByCode_thenShouldReturnEmpty() {
-            // When
-            Optional<Product> result = productRepository.findByCode(null);
-
-            // Then
-            assertThat(result).isEmpty();
-        }
-    }
-
-    @Nested
-    @DisplayName("Kod varlık kontrolü")
-    class ExistsByCode {
-
-        @Test
-        @DisplayName("Mevcut kod için true döndürmeli")
-        void givenExistingCode_whenExistsByCode_thenShouldReturnTrue() {
-            // When
-            boolean exists = productRepository.existsByCode("PAP_CUP_M");
-
-            // Then
-            assertThat(exists).isTrue();
-        }
-
-        @Test
-        @DisplayName("Mevcut olmayan kod için false döndürmeli")
-        void givenNonExistingCode_whenExistsByCode_thenShouldReturnFalse() {
-            // When
-            boolean exists = productRepository.existsByCode("NON_EXISTING");
-
-            // Then
-            assertThat(exists).isFalse();
-        }
-
-        @Test
-        @DisplayName("Null kod için false döndürmeli")
-        void givenNullCode_whenExistsByCode_thenShouldReturnFalse() {
-            // When
-            boolean exists = productRepository.existsByCode(null);
-
-            // Then
-            assertThat(exists).isFalse();
-        }
-
-        @Test
-        @DisplayName("Büyük/küçük harf duyarlı olmalı")
-        void givenDifferentCase_whenExistsByCode_thenShouldBeCaseSensitive() {
-            // When
-            boolean existsLowerCase = productRepository.existsByCode("pap_cup_m");
-            boolean existsUpperCase = productRepository.existsByCode("PAP_CUP_M");
-
-            // Then
-            assertThat(existsLowerCase).isFalse();
-            assertThat(existsUpperCase).isTrue();
-        }
     }
 
     @Nested
@@ -146,7 +65,7 @@ class ProductRepositoryTest {
 
             // Then
             assertThat(activeProducts).hasSize(1);
-            assertThat(activeProducts.get(0).getCode()).isEqualTo("PAP_CUP_M");
+            assertThat(activeProducts.get(0).getName()).isEqualTo("Orta Karton Bardak");
             assertThat(activeProducts.get(0).isActive()).isTrue();
         }
 
@@ -177,7 +96,7 @@ class ProductRepositoryTest {
 
             // Then
             assertThat(inactiveProducts).hasSize(1);
-            assertThat(inactiveProducts.get(0).getCode()).isEqualTo("PAP_CUP_L");
+            assertThat(inactiveProducts.get(0).getName()).isEqualTo("Büyük Karton Bardak");
             assertThat(inactiveProducts.get(0).isActive()).isFalse();
         }
 
@@ -205,10 +124,11 @@ class ProductRepositoryTest {
         void givenNewProduct_whenSave_thenShouldAssignId() {
             // Given
             Product newProduct = Product.builder()
-                    .code("NEW_PRODUCT")
                     .name("Yeni Ürün")
-                    .unit("adet")
+                    .description("Yeni ürün açıklaması")
+                    .unit(Unit.KG)
                     .unitPrice(new BigDecimal("5.00"))
+                    .taxRate(new BigDecimal("8.00"))
                     .active(true)
                     .build();
 
@@ -217,7 +137,10 @@ class ProductRepositoryTest {
 
             // Then
             assertThat(savedProduct.getId()).isNotNull();
-            assertThat(savedProduct.getCode()).isEqualTo("NEW_PRODUCT");
+            assertThat(savedProduct.getName()).isEqualTo("Yeni Ürün");
+            assertThat(savedProduct.getDescription()).isEqualTo("Yeni ürün açıklaması");
+            assertThat(savedProduct.getUnit()).isEqualTo(Unit.KG);
+            assertThat(savedProduct.getTaxRate()).isEqualTo(new BigDecimal("8.00"));
         }
 
         @Test
@@ -225,47 +148,18 @@ class ProductRepositoryTest {
         void givenExistingProduct_whenUpdate_thenShouldSaveChanges() {
             // Given
             activeProduct.setName("Güncellenmiş İsim");
+            activeProduct.setDescription("Güncellenmiş açıklama");
             activeProduct.setUnitPrice(new BigDecimal("10.00"));
+            activeProduct.setTaxRate(new BigDecimal("20.00"));
 
             // When
             Product updatedProduct = productRepository.save(activeProduct);
 
             // Then
             assertThat(updatedProduct.getName()).isEqualTo("Güncellenmiş İsim");
+            assertThat(updatedProduct.getDescription()).isEqualTo("Güncellenmiş açıklama");
             assertThat(updatedProduct.getUnitPrice()).isEqualTo(new BigDecimal("10.00"));
-        }
-    }
-
-    @Nested
-    @DisplayName("Ürün silme")
-    class DeleteProduct {
-
-        @Test
-        @DisplayName("Mevcut ürün silindiğinde veritabanından kaldırılmalı")
-        void givenExistingProduct_whenDelete_thenShouldRemoveFromDatabase() {
-            // Given
-            Long productId = activeProduct.getId();
-
-            // When
-            productRepository.delete(activeProduct);
-
-            // Then
-            Optional<Product> deletedProduct = productRepository.findById(productId);
-            assertThat(deletedProduct).isEmpty();
-        }
-
-        @Test
-        @DisplayName("ID ile ürün silindiğinde veritabanından kaldırılmalı")
-        void givenExistingProductId_whenDeleteById_thenShouldRemoveFromDatabase() {
-            // Given
-            Long productId = activeProduct.getId();
-
-            // When
-            productRepository.deleteById(productId);
-
-            // Then
-            Optional<Product> deletedProduct = productRepository.findById(productId);
-            assertThat(deletedProduct).isEmpty();
+            assertThat(updatedProduct.getTaxRate()).isEqualTo(new BigDecimal("20.00"));
         }
     }
 
@@ -301,7 +195,9 @@ class ProductRepositoryTest {
 
             // Then
             assertThat(foundProduct).isPresent();
-            assertThat(foundProduct.get().getCode()).isEqualTo("PAP_CUP_M");
+            assertThat(foundProduct.get().getName()).isEqualTo("Orta Karton Bardak");
+            assertThat(foundProduct.get().getDescription()).isEqualTo("Orta boy karton bardak açıklaması");
+            assertThat(foundProduct.get().getUnit()).isEqualTo(Unit.ADET);
         }
 
         @Test

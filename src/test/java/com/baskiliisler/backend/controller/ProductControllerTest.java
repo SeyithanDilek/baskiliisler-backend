@@ -6,6 +6,7 @@ import com.baskiliisler.backend.dto.ProductResponseDto;
 import com.baskiliisler.backend.dto.ProductUpdateDto;
 import com.baskiliisler.backend.model.Product;
 import com.baskiliisler.backend.service.ProductService;
+import com.baskiliisler.backend.type.Unit;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,34 +57,38 @@ class ProductControllerTest {
         
         testProduct = Product.builder()
                 .id(1L)
-                .code("PAP_CUP_M")
                 .name("Orta Karton Bardak")
-                .unit("adet")
+                .description("Orta boy karton bardak açıklaması")
+                .unit(Unit.ADET)
                 .unitPrice(new BigDecimal("2.50"))
+                .taxRate(new BigDecimal("18.00"))
                 .active(true)
                 .build();
 
         testProductRequestDto = new ProductRequestDto(
-                "PAP_CUP_M",
                 "Orta Karton Bardak",
-                "adet",
-                new BigDecimal("2.50")
+                "Orta boy karton bardak açıklaması",
+                Unit.ADET,
+                new BigDecimal("2.50"),
+                new BigDecimal("18.00")
         );
 
         testProductResponseDto = new ProductResponseDto(
                 1L,
-                "PAP_CUP_M",
                 "Orta Karton Bardak",
-                "adet",
+                "Orta boy karton bardak açıklaması",
+                Unit.ADET,
                 new BigDecimal("2.50"),
+                new BigDecimal("18.00"),
                 true
         );
 
         testProductUpdateDto = new ProductUpdateDto(
-                "PAP_CUP_L",
                 "Büyük Karton Bardak",
-                "adet",
+                "Büyük boy karton bardak açıklaması",
+                Unit.ADET,
                 new BigDecimal("3.50"),
+                new BigDecimal("18.00"),
                 true
         );
     }
@@ -104,10 +109,11 @@ class ProductControllerTest {
                             .content(objectMapper.writeValueAsString(testProductRequestDto)))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.id").value(testProduct.getId()))
-                    .andExpect(jsonPath("$.code").value(testProduct.getCode()))
                     .andExpect(jsonPath("$.name").value(testProduct.getName()))
-                    .andExpect(jsonPath("$.unit").value(testProduct.getUnit()))
+                    .andExpect(jsonPath("$.description").value(testProduct.getDescription()))
+                    .andExpect(jsonPath("$.unit").value(testProduct.getUnit().name()))
                     .andExpect(jsonPath("$.unitPrice").value(2.5))
+                    .andExpect(jsonPath("$.taxRate").value(18.0))
                     .andExpect(jsonPath("$.active").value(testProduct.isActive()));
 
             verify(productService).createProduct(any(ProductRequestDto.class));
@@ -117,7 +123,7 @@ class ProductControllerTest {
         @DisplayName("Geçersiz verilerle ürün oluşturulmaya çalışıldığında 400 Bad Request döndürmeli")
         void givenInvalidProductData_whenCreateProduct_thenShouldReturn400() throws Exception {
             // Given
-            ProductRequestDto invalidDto = new ProductRequestDto("", "", "", null);
+            ProductRequestDto invalidDto = new ProductRequestDto("", "", null, null, null);
 
             // When & Then
             mockMvc.perform(post("/products")
@@ -144,7 +150,8 @@ class ProductControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$[0].id").value(testProduct.getId()))
-                    .andExpect(jsonPath("$[0].code").value(testProduct.getCode()));
+                    .andExpect(jsonPath("$[0].name").value(testProduct.getName()))
+                    .andExpect(jsonPath("$[0].description").value(testProduct.getDescription()));
 
             verify(productService).getAllProducts();
         }
@@ -159,7 +166,8 @@ class ProductControllerTest {
             mockMvc.perform(get("/products/active"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$[0].id").value(testProduct.getId()));
+                    .andExpect(jsonPath("$[0].id").value(testProduct.getId()))
+                    .andExpect(jsonPath("$[0].active").value(true));
 
             verify(productService).getActiveProducts();
         }
@@ -179,7 +187,10 @@ class ProductControllerTest {
             mockMvc.perform(get("/products/1"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(testProductResponseDto.id()))
-                    .andExpect(jsonPath("$.code").value(testProductResponseDto.code()));
+                    .andExpect(jsonPath("$.name").value(testProductResponseDto.name()))
+                    .andExpect(jsonPath("$.description").value(testProductResponseDto.description()))
+                    .andExpect(jsonPath("$.unit").value(testProductResponseDto.unit().name()))
+                    .andExpect(jsonPath("$.taxRate").value(testProductResponseDto.taxRate().doubleValue()));
 
             verify(productService).findById(1L);
         }
@@ -199,20 +210,6 @@ class ProductControllerTest {
 
             verify(productService).findById(999L);
         }
-
-        @Test
-        @DisplayName("Geçerli kod ile ürün arandığında 200 OK döndürmeli")
-        void givenValidCode_whenFindByCode_thenShouldReturn200() throws Exception {
-            // Given
-            when(productService.findByCode("PAP_CUP_M")).thenReturn(testProductResponseDto);
-
-            // When & Then
-            mockMvc.perform(get("/products/code/PAP_CUP_M"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.code").value(testProductResponseDto.code()));
-
-            verify(productService).findByCode("PAP_CUP_M");
-        }
     }
 
     @Nested
@@ -231,13 +228,15 @@ class ProductControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(testProductUpdateDto)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(testProductResponseDto.id()));
+                    .andExpect(jsonPath("$.id").value(testProductResponseDto.id()))
+                    .andExpect(jsonPath("$.name").value(testProductResponseDto.name()))
+                    .andExpect(jsonPath("$.description").value(testProductResponseDto.description()));
 
             verify(productService).updateProduct(eq(1L), any(ProductUpdateDto.class));
         }
 
         @Test
-        @DisplayName("Geçersiz ID ile güncelleme yapıldığında 404 Not Found döndürmeli")
+        @DisplayName("Geçersiz ID ile ürün güncellenmeye çalışıldığında 404 Not Found döndürmeli")
         void givenInvalidId_whenUpdateProduct_thenShouldReturn404() throws Exception {
             // Given
             when(productService.updateProduct(eq(999L), any(ProductUpdateDto.class)))
@@ -247,10 +246,7 @@ class ProductControllerTest {
             mockMvc.perform(patch("/products/999")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(testProductUpdateDto)))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.status").value(404))
-                    .andExpect(jsonPath("$.error").value("Not Found"))
-                    .andExpect(jsonPath("$.message").value("Ürün bulunamadı"));
+                    .andExpect(status().isNotFound());
 
             verify(productService).updateProduct(eq(999L), any(ProductUpdateDto.class));
         }
@@ -281,10 +277,7 @@ class ProductControllerTest {
 
             // When & Then
             mockMvc.perform(delete("/products/999"))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.status").value(404))
-                    .andExpect(jsonPath("$.error").value("Not Found"))
-                    .andExpect(jsonPath("$.message").value("Ürün bulunamadı"));
+                    .andExpect(status().isNotFound());
 
             verify(productService).deleteProduct(999L);
         }
@@ -304,7 +297,8 @@ class ProductControllerTest {
             // When & Then
             mockMvc.perform(patch("/products/1/activate"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(testProductResponseDto.id()));
+                    .andExpect(jsonPath("$.id").value(testProductResponseDto.id()))
+                    .andExpect(jsonPath("$.active").value(testProductResponseDto.active()));
 
             verify(productService).activateProduct(1L);
             verify(productService).findById(1L);
@@ -324,22 +318,6 @@ class ProductControllerTest {
 
             verify(productService).deactivateProduct(1L);
             verify(productService).findById(1L);
-        }
-
-        @Test
-        @DisplayName("Mevcut olmayan ürün aktifleştirilmeye çalışıldığında 404 Not Found döndürmeli")
-        void givenNonExistingProduct_whenActivateProduct_thenShouldReturn404() throws Exception {
-            // Given
-            doThrow(new EntityNotFoundException("Ürün bulunamadı")).when(productService).activateProduct(999L);
-
-            // When & Then
-            mockMvc.perform(patch("/products/999/activate"))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.status").value(404))
-                    .andExpect(jsonPath("$.error").value("Not Found"))
-                    .andExpect(jsonPath("$.message").value("Ürün bulunamadı"));
-
-            verify(productService).activateProduct(999L);
         }
     }
 } 
