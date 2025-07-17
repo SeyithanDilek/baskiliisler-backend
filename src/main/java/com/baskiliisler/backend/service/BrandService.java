@@ -102,6 +102,11 @@ public class BrandService {
         if (brandProcessService.existsBrandProcess(id)) {
             ProcessStatus currentStatus = brandProcessService.getProcessStatus(id);
             
+            // Null kontrolü
+            if (currentStatus == null) {
+                throw new IllegalStateException("Brand process durumu belirlenemedi.");
+            }
+            
             // Sadece SAMPLE_LEFT durumunda silinebilir
             if (currentStatus != ProcessStatus.SAMPLE_LEFT) {
                 throw new IllegalStateException(
