@@ -25,7 +25,10 @@ public class OrderItemService {
                     .product(qi.getProduct())
                     .quantity(qi.getQuantity())
                     .unitPrice(qi.getUnitPrice())
+                    .taxRate(qi.getTaxRate())
                     .lineTotal(qi.getLineTotal())
+                    .taxAmount(qi.getTaxAmount())
+                    .lineTotalWithTax(qi.getLineTotalWithTax())
                     .plannedDelivery(dl)
                     .status(OrderItemStatus.PENDING)
                     .build());

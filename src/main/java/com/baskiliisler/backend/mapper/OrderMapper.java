@@ -17,7 +17,10 @@ public class OrderMapper {
                         i.getProduct().getName(),
                         i.getQuantity(),
                         i.getUnitPrice(),
+                        i.getTaxRate(),
                         i.getLineTotal(),
+                        i.getTaxAmount(),
+                        i.getLineTotalWithTax(),
                         i.getPlannedDelivery(),
                         i.getStatus()))
                 .toList();

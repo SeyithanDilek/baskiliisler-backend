@@ -29,7 +29,10 @@ public record OrderResponseDto(
             String productName,
             Integer quantity,
             BigDecimal unitPrice,
+            BigDecimal taxRate,
             BigDecimal lineTotal,
+            BigDecimal taxAmount,
+            BigDecimal lineTotalWithTax,
             LocalDate plannedDelivery,  // kalem bazlı teslim hedefi
             OrderItemStatus status      // PENDING / READY / DELIVERED
     ) {}

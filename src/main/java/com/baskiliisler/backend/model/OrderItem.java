@@ -30,8 +30,17 @@ public class OrderItem {
     @Column(name = "unit_price")
     private BigDecimal unitPrice;
 
+    @Column(name = "tax_rate")
+    private BigDecimal taxRate;
+
     @Column(name = "line_total")
     private BigDecimal lineTotal;
+
+    @Column(name = "tax_amount")
+    private BigDecimal taxAmount;
+
+    @Column(name = "line_total_with_tax")
+    private BigDecimal lineTotalWithTax;
 
     @Column(name = "planned_delivery")
     private LocalDate plannedDelivery; // müşteriyle mutabık tarih
