@@ -61,19 +61,14 @@ public class QuoteService {
                 ProcessStatus.SAMPLE_LEFT,  // fromStatus
                 "{\"quoteId\":" + quote.getId() + "}");
 
-        // Transaction'ı flush et ve Quote'u tekrar fetch et
-        entityManager.flush();
-        entityManager.clear();
-        Quote finalQuote = quoteRepo.findByIdWithItems(quote.getId()).orElse(quote);
-        
         // Notification gönder - hata durumunda ana işlem devam etsin
         try {
-            notificationService.notifyNewQuote(finalQuote);
+            notificationService.notifyNewQuote(quote);
         } catch (Exception e) {
             log.warn("Notification gönderilirken hata oluştu: {}", e.getMessage());
         }
         
-        return finalQuote;
+        return quote;
     }
 
     @Transactional
@@ -105,10 +100,7 @@ public class QuoteService {
                 ProcessStatus.OFFER_SENT,  // fromStatus
                 "Revizyon yapıldı. Teklif ID: " + quote.getId());
         
-        // Transaction'ı flush et ve Quote'u tekrar fetch et
-        entityManager.flush();
-        entityManager.clear();
-        return quoteRepo.findByIdWithItems(quote.getId()).orElse(quote);
+        return quote;
     }
 
     @Transactional
