@@ -174,10 +174,11 @@ public class QuoteService {
         Quote quote = quoteRepo.findById(quoteId)
                 .orElseThrow(() -> new EntityNotFoundException("Teklif bulunamadı"));
 
-        // Sadece DRAFT veya EXPIRED durumundaki teklifler silinebilir
+        // Sadece DRAFT, OFFER_SENT veya EXPIRED durumundaki teklifler silinebilir
         if (quote.getStatus() != QuoteStatus.DRAFT && 
+            quote.getStatus() != QuoteStatus.OFFER_SENT &&
             quote.getStatus() != QuoteStatus.EXPIRED) {
-            throw new IllegalStateException("Bu teklif silinemez. Sadece taslak veya süresi dolmuş teklifler silinebilir.");
+            throw new IllegalStateException("Bu teklif silinemez. Sadece taslak, gönderilmiş veya süresi dolmuş teklifler silinebilir.");
         }
 
         quoteRepo.delete(quote);
