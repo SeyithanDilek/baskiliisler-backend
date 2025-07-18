@@ -116,9 +116,17 @@ public class BrandService {
             }
             
             log.info("SAMPLE_LEFT durumunda marka siliniyor: {} (ID: {})", brand.getName(), id);
+            
+            // Güvenli silme: önce bağlı entity'leri sil
+            // 1. ProcessHistory'leri sil
+            BrandProcess brandProcess = brandProcessService.getBrandProcess(id);
+            brandProcessHistoryService.deleteProcessHistoryByProcessId(brandProcess.getId());
+            
+            // 2. BrandProcess'i sil  
+            brandProcessService.deleteBrandProcess(id);
         }
         
-        // Marka silme işlemi
+        // 3. Son olarak Brand'i sil
         brandRepository.deleteById(id);
         log.info("Brand başarıyla silindi: {} (ID: {})", brand.getName(), id);
     }

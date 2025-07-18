@@ -11,4 +11,6 @@ public interface ProcessHistoryRepository extends JpaRepository<ProcessHistory, 
 
     @Query("select h from ProcessHistory h where h.process.brand.id = :brandId order by h.changedAt desc")
     List<ProcessHistory> findByBrandId(Long brandId);
+
+    void deleteByProcessId(Long processId);
 }

@@ -48,4 +48,9 @@ public class BrandProcessHistoryService {
                 .build());
     }
 
+    @Transactional
+    public void deleteProcessHistoryByProcessId(Long processId) {
+        historyRepo.deleteByProcessId(processId);
+    }
+
 }

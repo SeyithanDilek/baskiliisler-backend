@@ -19,4 +19,6 @@ public interface BrandProcessRepository extends JpaRepository<BrandProcess, Long
     Optional<BrandProcess> findByBrandIdForUpdate(@Param("brandId") Long brandId);
 
     boolean existsByBrandId(Long brandId);
+
+    void deleteByBrandId(Long brandId);
 }

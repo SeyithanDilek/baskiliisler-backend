@@ -5,6 +5,7 @@ import com.baskiliisler.backend.model.BrandProcess;
 import com.baskiliisler.backend.repository.BrandProcessRepository;
 import com.baskiliisler.backend.type.ProcessStatus;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -54,6 +55,11 @@ public class BrandProcessService {
 
     public boolean existsBrandProcess(Long brandId) {
         return brandProcessRepository.existsByBrandId(brandId);
+    }
+
+    @Transactional
+    public void deleteBrandProcess(Long brandId) {
+        brandProcessRepository.deleteByBrandId(brandId);
     }
 
 
