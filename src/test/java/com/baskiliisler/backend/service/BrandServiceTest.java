@@ -282,10 +282,73 @@ class BrandServiceTest {
     class DeleteBrandTests {
 
         @Test
-        @DisplayName("Marka başarıyla silindiğinde")
-        void whenDeleteBrand_thenDeleteSuccessfully() {
+        @DisplayName("SAMPLE_LEFT durumunda marka başarıyla silindiğinde")
+        void whenDeleteBrand_withSampleLeftStatus_thenDeleteSuccessfully() {
             // given
             Long brandId = 1L;
+            Brand brand = Brand.builder().id(brandId).name("Test Brand").build();
+            BrandProcess brandProcess = BrandProcess.builder().id(10L).brand(brand).build();
+            
+            when(brandRepository.findById(brandId)).thenReturn(Optional.of(brand));
+            when(brandProcessService.existsBrandProcess(brandId)).thenReturn(true);
+            when(brandProcessService.getProcessStatus(brandId)).thenReturn(ProcessStatus.SAMPLE_LEFT);
+            when(brandProcessService.getBrandProcess(brandId)).thenReturn(brandProcess);
+
+            // when
+            brandService.deleteBrand(brandId);
+
+            // then
+            verify(brandProcessHistoryService).deleteProcessHistoryByProcessId(10L);
+            verify(brandProcessService).deleteBrandProcess(brandId);
+            verify(brandRepository).deleteById(brandId);
+        }
+
+        @Test
+        @DisplayName("SAMPLE_LEFT olmayan durumda marka silinmeye çalışıldığında")
+        void whenDeleteBrand_withNonSampleLeftStatus_thenThrowException() {
+            // given
+            Long brandId = 1L;
+            Brand brand = Brand.builder().id(brandId).name("Test Brand").build();
+            
+            when(brandRepository.findById(brandId)).thenReturn(Optional.of(brand));
+            when(brandProcessService.existsBrandProcess(brandId)).thenReturn(true);
+            when(brandProcessService.getProcessStatus(brandId)).thenReturn(ProcessStatus.INIT);
+
+            // when & then
+            assertThatThrownBy(() -> brandService.deleteBrand(brandId))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("Marka sadece numune bırakıldı (SAMPLE_LEFT) durumunda silinebilir");
+
+            verify(brandRepository, never()).deleteById(any());
+        }
+
+        @Test
+        @DisplayName("Process durumu null olan marka silinmeye çalışıldığında")
+        void whenDeleteBrand_withNullProcessStatus_thenThrowException() {
+            // given
+            Long brandId = 1L;
+            Brand brand = Brand.builder().id(brandId).name("Test Brand").build();
+            
+            when(brandRepository.findById(brandId)).thenReturn(Optional.of(brand));
+            when(brandProcessService.existsBrandProcess(brandId)).thenReturn(true);
+            when(brandProcessService.getProcessStatus(brandId)).thenReturn(null);
+
+            // when & then
+            assertThatThrownBy(() -> brandService.deleteBrand(brandId))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("Brand process durumu belirlenemedi");
+
+            verify(brandRepository, never()).deleteById(any());
+        }
+
+        @Test
+        @DisplayName("Process'i olmayan marka silinmeye çalışıldığında")
+        void whenDeleteBrand_withoutProcess_thenDeleteSuccessfully() {
+            // given
+            Long brandId = 1L;
+            Brand brand = Brand.builder().id(brandId).name("Test Brand").build();
+            
+            when(brandRepository.findById(brandId)).thenReturn(Optional.of(brand));
             when(brandProcessService.existsBrandProcess(brandId)).thenReturn(false);
 
             // when
@@ -293,21 +356,8 @@ class BrandServiceTest {
 
             // then
             verify(brandRepository).deleteById(brandId);
-        }
-
-        @Test
-        @DisplayName("Aktif süreci olan marka silinmeye çalışıldığında")
-        void whenDeleteBrand_withActiveProcess_thenThrowException() {
-            // given
-            Long brandId = 1L;
-            when(brandProcessService.existsBrandProcess(brandId)).thenReturn(true);
-
-            // when & then
-            assertThatThrownBy(() -> brandService.deleteBrand(brandId))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("Süreç devam ediyor, marka silinemez");
-
-            verify(brandRepository, never()).deleteById(any());
+            verify(brandProcessHistoryService, never()).deleteProcessHistoryByProcessId(any());
+            verify(brandProcessService, never()).deleteBrandProcess(any());
         }
 
         @Test
@@ -315,14 +365,14 @@ class BrandServiceTest {
         void whenDeleteBrand_withNonExistingId_thenThrowException() {
             // given
             Long nonExistingId = 999L;
-            when(brandProcessService.existsBrandProcess(nonExistingId)).thenReturn(false);
-            doThrow(new EntityNotFoundException("Brand not found"))
-                    .when(brandRepository).deleteById(nonExistingId);
+            when(brandRepository.findById(nonExistingId)).thenReturn(Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> brandService.deleteBrand(nonExistingId))
                     .isInstanceOf(EntityNotFoundException.class)
                     .hasMessageContaining("Brand not found");
+
+            verify(brandRepository, never()).deleteById(any());
         }
     }
 } 
