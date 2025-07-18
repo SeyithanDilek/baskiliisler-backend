@@ -20,5 +20,8 @@ public record QuoteResponseDto(
             String productName,
             Integer quantity,
             BigDecimal unitPrice,
-            BigDecimal lineTotal) {}
+            BigDecimal taxRate,
+            BigDecimal lineTotal,
+            BigDecimal taxAmount,
+            BigDecimal lineTotalWithTax) {}
 }

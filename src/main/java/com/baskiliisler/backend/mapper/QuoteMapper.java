@@ -19,7 +19,10 @@ public class QuoteMapper {
                         i.getProduct().getName(),
                         i.getQuantity(),
                         i.getUnitPrice(),
-                        i.getLineTotal()))
+                        i.getTaxRate(),
+                        i.getLineTotal(),
+                        i.getTaxAmount(),
+                        i.getLineTotalWithTax()))
                 .toList() : 
             Collections.emptyList();
             

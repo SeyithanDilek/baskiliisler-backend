@@ -26,16 +26,24 @@ public class QuoteItemService {
         for (QuoteItemRequestDto ri : quoteItemRequestDtos) {
             Product p = productRepository.findById(ri.productId())
                     .orElseThrow(() -> new EntityNotFoundException("Ürün yok"));
-            BigDecimal line = ri.unitPrice().multiply(
-                    BigDecimal.valueOf(ri.quantity()));
-            total = total.add(line);
+            
+            // KDV hesaplamaları
+            BigDecimal lineTotal = ri.unitPrice().multiply(BigDecimal.valueOf(ri.quantity()));
+            BigDecimal taxRate = ri.taxRate() != null ? ri.taxRate() : BigDecimal.valueOf(18.00);
+            BigDecimal taxAmount = lineTotal.multiply(taxRate.divide(BigDecimal.valueOf(100)));
+            BigDecimal lineTotalWithTax = lineTotal.add(taxAmount);
+            
+            total = total.add(lineTotalWithTax);
 
             quoteItemRepository.save(QuoteItem.builder()
                     .quote(quote)
                     .product(p)
                     .quantity(ri.quantity())
                     .unitPrice(ri.unitPrice())
-                    .lineTotal(line)
+                    .taxRate(taxRate)
+                    .lineTotal(lineTotal)
+                    .taxAmount(taxAmount)
+                    .lineTotalWithTax(lineTotalWithTax)
                     .build());
         }
         return total;

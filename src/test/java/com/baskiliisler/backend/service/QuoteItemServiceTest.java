@@ -77,7 +77,8 @@ class QuoteItemServiceTest {
         testItemRequest = new QuoteItemRequestDto(
                 1L,
                 5,
-                BigDecimal.valueOf(100)
+                BigDecimal.valueOf(100),
+                BigDecimal.valueOf(18.00)
         );
 
         testQuoteItem = QuoteItem.builder()
@@ -98,8 +99,8 @@ class QuoteItemServiceTest {
         @DisplayName("Başarılı quote item oluşturma ve toplam hesaplama")
         void whenAssembleQuoteItems_thenCreateItemsAndReturnTotal() {
             // given
-            QuoteItemRequestDto item1 = new QuoteItemRequestDto(1L, 2, BigDecimal.valueOf(100));
-            QuoteItemRequestDto item2 = new QuoteItemRequestDto(2L, 3, BigDecimal.valueOf(200));
+            QuoteItemRequestDto item1 = new QuoteItemRequestDto(1L, 2, BigDecimal.valueOf(100), BigDecimal.valueOf(18.00));
+            QuoteItemRequestDto item2 = new QuoteItemRequestDto(2L, 3, BigDecimal.valueOf(200), BigDecimal.valueOf(18.00));
             List<QuoteItemRequestDto> itemRequests = List.of(item1, item2);
 
             Product product1 = Product.builder().id(1L).name("Product 1").build();
@@ -113,7 +114,7 @@ class QuoteItemServiceTest {
             BigDecimal total = quoteItemService.assembleAndSaveQuoteItems(testQuote, itemRequests);
 
             // then
-            assertThat(total).isEqualTo(BigDecimal.valueOf(800)); // (2*100) + (3*200) = 800
+            assertThat(total).isEqualTo(new BigDecimal("944.00")); // (2*100*1.18) + (3*200*1.18) = 944.00 (KDV dahil)
 
             ArgumentCaptor<QuoteItem> quoteItemCaptor = ArgumentCaptor.forClass(QuoteItem.class);
             verify(quoteItemRepository, times(2)).save(quoteItemCaptor.capture());
@@ -172,7 +173,7 @@ class QuoteItemServiceTest {
         @DisplayName("Sıfır fiyatlı ürün ile toplam hesaplama")
         void whenAssembleQuoteItems_withZeroPrice_thenCalculateCorrectly() {
             // given
-            QuoteItemRequestDto zeroPrice = new QuoteItemRequestDto(1L, 5, BigDecimal.ZERO);
+            QuoteItemRequestDto zeroPrice = new QuoteItemRequestDto(1L, 5, BigDecimal.ZERO, BigDecimal.valueOf(18.00));
             List<QuoteItemRequestDto> itemRequests = List.of(zeroPrice);
 
             when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
@@ -182,7 +183,7 @@ class QuoteItemServiceTest {
             BigDecimal total = quoteItemService.assembleAndSaveQuoteItems(testQuote, itemRequests);
 
             // then
-            assertThat(total).isEqualTo(BigDecimal.ZERO);
+            assertThat(total).isEqualTo(new BigDecimal("0.00"));
             
             ArgumentCaptor<QuoteItem> quoteItemCaptor = ArgumentCaptor.forClass(QuoteItem.class);
             verify(quoteItemRepository).save(quoteItemCaptor.capture());

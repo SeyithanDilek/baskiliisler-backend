@@ -9,4 +9,5 @@ import java.math.BigDecimal;
 public record QuoteItemRequestDto(
         @NotNull Long productId,
         @Min(1)  Integer quantity,
-        @Positive BigDecimal unitPrice) {}
+        @Positive BigDecimal unitPrice,
+        @Positive BigDecimal taxRate) {}

@@ -94,7 +94,8 @@ class QuoteServiceTest {
         QuoteItemRequestDto item = new QuoteItemRequestDto(
                 1L,
                 2,
-                BigDecimal.valueOf(1000)
+                BigDecimal.valueOf(1000),
+                BigDecimal.valueOf(18.00)
         );
 
         testCreateDto = new QuoteCreateDto(
