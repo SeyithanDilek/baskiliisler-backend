@@ -50,4 +50,14 @@ public class Order {
     @Column(nullable = false, length = 24)
     @Builder.Default
     private OrderStatus status = OrderStatus.PENDING;
+
+    /* ------------ Müşteri Bilgileri ------------ */
+    @Column(name = "customer_logo_url")
+    private String customerLogoUrl;                   // müşterinin logosu
+
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;                       // sipariş açıklaması
+
+    @Column(name = "customer_tax_number")
+    private String customerTaxNumber;                 // müşterinin vergi numarası
 }

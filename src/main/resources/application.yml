@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://dpg-d1bttqeuk2gs73a4bg60-a.oregon-postgres.render.com:5432/postgress_w2fz?sslmode=require
-    username: admin
-    password: IDn3KASVVe7ZtQGpCnz3pcPjwDn0mXUD
+    url: jdbc:postgresql://dpg-d1vtqu49c44c73e72pn0-a.frankfurt-postgres.render.com:5432/baskili_isler_db?sslmode=require
+    username: baskili_isler_db_user
+    password: xRieSiETi4zEHPdQEAzDdeyu4FBicdaK
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5           # Neon için daha yüksek ayar

@@ -55,7 +55,8 @@ class BrandServiceTest {
         testBrandRequest = new BrandRequestDto(
                 "Test Brand",
                 "contact@test.com",
-                "1234567890"
+                "1234567890",
+                "https://example.com/logo.png"
         );
 
         testBrand = Brand.builder()
@@ -63,6 +64,7 @@ class BrandServiceTest {
                 .name(testBrandRequest.name())
                 .contactEmail(testBrandRequest.contactEmail())
                 .contactPhone(testBrandRequest.contactPhone())
+                .logoUrl(testBrandRequest.logoUrl())
                 .build();
     }
 
@@ -129,7 +131,8 @@ class BrandServiceTest {
             BrandRequestDto invalidRequest = new BrandRequestDto(
                     "Test Brand",
                     "invalid-email",
-                    "1234567890"
+                    "1234567890",
+                    "https://example.com/logo.png"
             );
 
             // when & then
@@ -223,7 +226,8 @@ class BrandServiceTest {
             BrandUpdateDto updateDto = new BrandUpdateDto(
                     "Updated Brand",
                     "updated@test.com",
-                    "9876543210"
+                    "9876543210",
+                    "https://example.com/updated-logo.png"
             );
 
             when(brandRepository.findById(brandId)).thenReturn(Optional.of(testBrand));
@@ -247,7 +251,7 @@ class BrandServiceTest {
             // given
             Long brandId = 1L;
             String existingName = "Existing Brand";
-            BrandUpdateDto updateDto = new BrandUpdateDto(existingName, null, null);
+            BrandUpdateDto updateDto = new BrandUpdateDto(existingName, null, null, null);
             Brand existingBrand = Brand.builder().name(existingName).build();
 
             when(brandRepository.findById(brandId)).thenReturn(Optional.of(testBrand));
@@ -267,7 +271,8 @@ class BrandServiceTest {
             BrandUpdateDto updateDto = new BrandUpdateDto(
                     "Updated Brand",
                     "invalid-email",
-                    "9876543210"
+                    "9876543210",
+                    "https://example.com/logo.png"
             );
 
             // when & then

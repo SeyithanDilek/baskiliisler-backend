@@ -6,5 +6,6 @@ import jakarta.validation.constraints.Size;
 public record BrandUpdateDto(
         @Size(max = 100)  String name,
         @Email String contactEmail,
-        String contactPhone
+        String contactPhone,
+        String logoUrl                              // marka logosu URL'i (opsiyonel)
 ) {}

@@ -20,7 +20,8 @@ class BrandMapperTest {
         BrandRequestDto dto = new BrandRequestDto(
                 "Test Brand",
                 "test@brand.com",
-                "1234567890"
+                "1234567890",
+                "https://example.com/logo.png"
         );
 
         // when
@@ -32,6 +33,7 @@ class BrandMapperTest {
         assertThat(result.getName()).isEqualTo("Test Brand");
         assertThat(result.getContactEmail()).isEqualTo("test@brand.com");
         assertThat(result.getContactPhone()).isEqualTo("1234567890");
+        assertThat(result.getLogoUrl()).isEqualTo("https://example.com/logo.png");
         assertThat(result.getAssignedUser()).isNull();
     }
 
@@ -44,6 +46,7 @@ class BrandMapperTest {
                 .name("Test Brand")
                 .contactEmail("test@brand.com")
                 .contactPhone("1234567890")
+                .logoUrl("https://example.com/logo.png")
                 .build();
 
         // when
@@ -55,6 +58,7 @@ class BrandMapperTest {
         assertThat(result.name()).isEqualTo("Test Brand");
         assertThat(result.contactEmail()).isEqualTo("test@brand.com");
         assertThat(result.contactPhone()).isEqualTo("1234567890");
+        assertThat(result.logoUrl()).isEqualTo("https://example.com/logo.png");
     }
 
     @Test
@@ -118,7 +122,8 @@ class BrandMapperTest {
         BrandUpdateDto updateDto = new BrandUpdateDto(
                 "New Name",
                 "new@email.com",
-                "2222222222"
+                "2222222222",
+                "https://example.com/new-logo.png"
         );
 
         // when
@@ -145,7 +150,8 @@ class BrandMapperTest {
         BrandUpdateDto updateDto = new BrandUpdateDto(
                 "Updated Name",
                 null, // Email güncellenmeyecek
-                "3333333333"
+                "3333333333",
+                null  // Logo URL güncellenmeyecek
         );
 
         // when
@@ -169,7 +175,7 @@ class BrandMapperTest {
                 .contactPhone("1111111111")
                 .build();
 
-        BrandUpdateDto updateDto = new BrandUpdateDto(null, null, null);
+        BrandUpdateDto updateDto = new BrandUpdateDto(null, null, null, null);
 
         // when
         BrandMapper.updateEntity(updateDto, brand);
@@ -188,7 +194,8 @@ class BrandMapperTest {
         BrandRequestDto dto = new BrandRequestDto(
                 "Test Brand",
                 null, // Email null
-                null  // Phone null
+                null, // Phone null
+                null  // Logo URL null
         );
 
         // when

@@ -105,7 +105,10 @@ public class QuoteService {
 
     @Transactional
     public Order acceptQuote(Long quoteId,
-                             Map<Long, LocalDate> deadlines) {
+                             Map<Long, LocalDate> deadlines,
+                             String customerLogoUrl,
+                             String description,
+                             String customerTaxNumber) {
         Quote quote = quoteRepo.findById(quoteId)
                 .orElseThrow(() -> new EntityNotFoundException("Teklif bulunamadı"));
 
@@ -116,7 +119,7 @@ public class QuoteService {
         quote.setStatus(QuoteStatus.ACCEPTED);
         quote.setUpdatedAt(LocalDateTime.now());
 
-        Order order = orderService.createOrderFromQuote(quote, deadlines);
+        Order order = orderService.createOrderFromQuote(quote, deadlines, customerLogoUrl, description, customerTaxNumber);
         BrandProcess savedBrandProcess = brandProcessService.updateBrandProcessStatus(quote.getBrand().getId(), ProcessStatus.OFFER_SENT);
         brandProcessHistoryService.saveProcessHistoryForChangeStatus(savedBrandProcess,
                 ProcessStatus.ORDER_PLACED,  // toStatus

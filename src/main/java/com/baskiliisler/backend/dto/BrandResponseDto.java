@@ -4,5 +4,6 @@ public record BrandResponseDto(
         Long id,
         String name,
         String contactEmail,
-        String contactPhone
+        String contactPhone,
+        String logoUrl
 ) {}

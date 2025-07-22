@@ -32,6 +32,7 @@ class OrderMapperTest {
                 .name("Test Brand")
                 .contactEmail("test@brand.com")
                 .contactPhone("1234567890")
+                .logoUrl("https://example.com/logo.png")
                 .build();
 
         Quote testQuote = Quote.builder()
@@ -102,6 +103,9 @@ class OrderMapperTest {
                 .deadline(LocalDate.now().plusDays(30))
                 .totalPrice(BigDecimal.valueOf(2500))
                 .status(OrderStatus.IN_PRODUCTION)
+                .customerLogoUrl("https://example.com/logo.png")
+                .description("Test sipariş açıklaması")
+                .customerTaxNumber("1234567890")
                 .build();
 
         orderWithoutFactory = Order.builder()
@@ -113,6 +117,9 @@ class OrderMapperTest {
                 .deadline(LocalDate.now().plusDays(30))
                 .totalPrice(BigDecimal.valueOf(2500))
                 .status(OrderStatus.PENDING)
+                .customerLogoUrl("https://example.com/logo2.png")
+                .description("Test sipariş açıklaması 2")
+                .customerTaxNumber("9876543210")
                 .build();
     }
 
@@ -132,6 +139,7 @@ class OrderMapperTest {
         assertThat(result.brand()).isNotNull();
         assertThat(result.brand().id()).isEqualTo(1L);
         assertThat(result.brand().name()).isEqualTo("Test Brand");
+        assertThat(result.brand().logoUrl()).isEqualTo("https://example.com/logo.png");
         
         // Factory bilgisi kontrolü
         assertThat(result.factory()).isNotNull();
@@ -142,6 +150,11 @@ class OrderMapperTest {
         assertThat(result.items()).hasSize(2);
         assertThat(result.items().get(0).productName()).isEqualTo("Test Product 1");
         assertThat(result.items().get(1).productName()).isEqualTo("Test Product 2");
+        
+        // Yeni field'lar kontrolü
+        assertThat(result.customerLogoUrl()).isEqualTo("https://example.com/logo.png");
+        assertThat(result.description()).isEqualTo("Test sipariş açıklaması");
+        assertThat(result.customerTaxNumber()).isEqualTo("1234567890");
     }
 
     @Test
@@ -162,6 +175,11 @@ class OrderMapperTest {
         
         // Items kontrolü
         assertThat(result.items()).hasSize(2);
+        
+        // Yeni field'lar kontrolü
+        assertThat(result.customerLogoUrl()).isEqualTo("https://example.com/logo2.png");
+        assertThat(result.description()).isEqualTo("Test sipariş açıklaması 2");
+        assertThat(result.customerTaxNumber()).isEqualTo("9876543210");
     }
 
     @Test

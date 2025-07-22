@@ -17,10 +17,13 @@ public record OrderResponseDto(
         BigDecimal totalPrice,
         BrandInfo brand,                // hangi markaya ait
         FactoryInfo factory,            // null: henüz atanmadı
-        List<ItemResp> items            // kalem listesi
+        List<ItemResp> items,           // kalem listesi
+        String customerLogoUrl,         // müşterinin logosu
+        String description,             // sipariş açıklaması
+        String customerTaxNumber        // müşterinin vergi numarası
 ) {
 
-    public record BrandInfo(Long id, String name) {}
+    public record BrandInfo(Long id, String name, String logoUrl) {}
     
     public record FactoryInfo(Long id, String name) {}
 

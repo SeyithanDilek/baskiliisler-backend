@@ -32,4 +32,7 @@ public class Brand {
     @ManyToOne
     @JoinColumn(name = "assigned_user_id")
     private User assignedUser;
+
+    @Column(name = "logo_url")
+    private String logoUrl;                    // marka logosu URL'i
 }

@@ -52,7 +52,8 @@ class BrandControllerTest {
         BrandRequestDto request = new BrandRequestDto(
                 "Test Brand",
                 "contact@test.com",
-                "1234567890"
+                "1234567890",
+                "https://example.com/logo.png"
         );
 
         Brand createdBrand = Brand.builder()
@@ -137,7 +138,8 @@ class BrandControllerTest {
         BrandUpdateDto request = new BrandUpdateDto(
                 "Updated Brand",
                 "updated@test.com",
-                "9876543210"
+                "9876543210",
+                "https://example.com/updated-logo.png"
         );
 
         BrandDetailDto updatedBrand = new BrandDetailDto(

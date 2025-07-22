@@ -32,13 +32,25 @@ public class OrderService {
 
     @Transactional
     public Order createOrderFromQuote(Quote quote,
-                                      Map<Long,LocalDate> deadlines) {
+                                      Map<Long,LocalDate> deadlines,
+                                      String customerLogoUrl,
+                                      String description,
+                                      String customerTaxNumber) {
 
+        // Brand'den logo URL'ini al, eğer customerLogoUrl null ise
+        String logoUrl = customerLogoUrl;
+        if (logoUrl == null && quote.getBrand() != null) {
+            logoUrl = quote.getBrand().getLogoUrl();
+        }
+        
         Order order = orderRepository.save(Order.builder()
                 .quote(quote)
                 .createdAt(LocalDateTime.now())
                 .totalPrice(quote.getTotalPrice())
                 .status(OrderStatus.PENDING)
+                .customerLogoUrl(logoUrl)
+                .description(description)
+                .customerTaxNumber(customerTaxNumber)
                 .build());
 
         orderItemService.assembleAndSaveOrderItems(quote, deadlines, order);

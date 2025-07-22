@@ -25,7 +25,7 @@ public class OrderController {
     @PatchMapping("/{id}/accept")
     public OrderResponseDto accept(@PathVariable Long id,
                                    @RequestBody QuoteAcceptDto dto) {
-        Order order = quoteService.acceptQuote(id, dto.itemDeadlines());
+        Order order = quoteService.acceptQuote(id, dto.itemDeadlines(), dto.customerLogoUrl(), dto.description(), dto.customerTaxNumber());
         return OrderMapper.toDto(order);
     }
 

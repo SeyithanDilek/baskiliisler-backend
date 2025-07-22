@@ -28,9 +28,11 @@ public class OrderMapper {
         // Brand bilgisi (Order -> Quote -> Brand)
         OrderResponseDto.BrandInfo brandInfo = null;
         if (o.getQuote() != null && o.getQuote().getBrand() != null) {
+            var brand = o.getQuote().getBrand();
             brandInfo = new OrderResponseDto.BrandInfo(
-                    o.getQuote().getBrand().getId(),
-                    o.getQuote().getBrand().getName());
+                    brand.getId(),
+                    brand.getName(),
+                    brand.getLogoUrl());
         }
 
         // Factory bilgisi
@@ -50,7 +52,10 @@ public class OrderMapper {
                 o.getTotalPrice(),
                 brandInfo,
                 factoryInfo,
-                itemDtos);
+                itemDtos,
+                o.getCustomerLogoUrl(),
+                o.getDescription(),
+                o.getCustomerTaxNumber());
     }
 
 }

@@ -259,9 +259,9 @@ class OrderControllerTest {
                 2L, LocalDate.now().plusDays(21)
         );
         
-        QuoteAcceptDto request = new QuoteAcceptDto(itemDeadlines);
+        QuoteAcceptDto request = new QuoteAcceptDto(itemDeadlines, "logo.png", "Test description", "1234567890");
 
-        when(quoteService.acceptQuote(eq(quoteId), eq(itemDeadlines))).thenReturn(testOrder);
+        when(quoteService.acceptQuote(eq(quoteId), eq(itemDeadlines), eq("logo.png"), eq("Test description"), eq("1234567890"))).thenReturn(testOrder);
 
         // when & then
         mockMvc.perform(patch("/orders/{id}/accept", quoteId)
@@ -278,9 +278,9 @@ class OrderControllerTest {
     void whenAcceptQuote_withoutDeadlines_thenReturnCreatedOrder() throws Exception {
         // given
         Long quoteId = 2L;
-        QuoteAcceptDto request = new QuoteAcceptDto(null);
+        QuoteAcceptDto request = new QuoteAcceptDto(null, "logo.png", "Test description", "1234567890");
 
-        when(quoteService.acceptQuote(eq(quoteId), any())).thenReturn(testOrder);
+        when(quoteService.acceptQuote(eq(quoteId), any(), eq("logo.png"), eq("Test description"), eq("1234567890"))).thenReturn(testOrder);
 
         // when & then
         mockMvc.perform(patch("/orders/{id}/accept", quoteId)
@@ -298,9 +298,9 @@ class OrderControllerTest {
         // given
         Long quoteId = 3L;
         Map<Long, LocalDate> emptyDeadlines = Map.of();
-        QuoteAcceptDto request = new QuoteAcceptDto(emptyDeadlines);
+        QuoteAcceptDto request = new QuoteAcceptDto(emptyDeadlines, "logo.png", "Test description", "1234567890");
 
-        when(quoteService.acceptQuote(eq(quoteId), eq(emptyDeadlines))).thenReturn(testOrder);
+        when(quoteService.acceptQuote(eq(quoteId), eq(emptyDeadlines), eq("logo.png"), eq("Test description"), eq("1234567890"))).thenReturn(testOrder);
 
         // when & then
         mockMvc.perform(patch("/orders/{id}/accept", quoteId)
@@ -317,9 +317,9 @@ class OrderControllerTest {
     void whenAcceptUnacceptableQuote_thenReturn400() throws Exception {
         // given
         Long quoteId = 1L;
-        QuoteAcceptDto request = new QuoteAcceptDto(null);
+        QuoteAcceptDto request = new QuoteAcceptDto(null, "logo.png", "Test description", "1234567890");
         
-        when(quoteService.acceptQuote(eq(quoteId), any()))
+        when(quoteService.acceptQuote(eq(quoteId), any(), eq("logo.png"), eq("Test description"), eq("1234567890")))
                 .thenThrow(new IllegalStateException("Teklif kabul edilemez"));
 
         // when & then

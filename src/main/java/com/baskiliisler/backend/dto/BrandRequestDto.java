@@ -14,5 +14,7 @@ public record BrandRequestDto(
         String contactEmail,
 
         @NotBlank(message = "Telefon numarası boş olamaz")
-        String contactPhone
+        String contactPhone,
+
+        String logoUrl                              // marka logosu URL'i (opsiyonel)
 ) {}

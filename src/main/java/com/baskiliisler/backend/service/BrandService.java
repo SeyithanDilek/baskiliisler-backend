@@ -6,9 +6,12 @@ import com.baskiliisler.backend.dto.BrandUpdateDto;
 import com.baskiliisler.backend.mapper.BrandMapper;
 import com.baskiliisler.backend.model.Brand;
 import com.baskiliisler.backend.model.BrandProcess;
+import com.baskiliisler.backend.model.User;
 import com.baskiliisler.backend.repository.BrandRepository;
+import com.baskiliisler.backend.repository.UserRepository;
 import com.baskiliisler.backend.type.ProcessStatus;
 import com.baskiliisler.backend.notification.service.NotificationService;
+import com.baskiliisler.backend.config.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Validation;
@@ -25,6 +28,7 @@ import java.util.List;
 public class BrandService {
 
     private final BrandRepository brandRepository;
+    private final UserRepository userRepository;
     private final BrandProcessService brandProcessService;
     private final BrandProcessHistoryService brandProcessHistoryService;
     private final NotificationService notificationService;
@@ -42,7 +46,14 @@ public class BrandService {
         brandRepository.findByName(dto.name())
                 .ifPresent(b -> { throw new IllegalArgumentException("Marka zaten var"); });
 
-        Brand brand = brandRepository.save(BrandMapper.toEntity(dto));
+        // Giriş yapan kullanıcıyı assignedUser olarak ata
+        Long userId = SecurityUtil.currentUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Kullanıcı bulunamadı"));
+
+        Brand brand = BrandMapper.toEntity(dto);
+        brand.setAssignedUser(user);
+        brand = brandRepository.save(brand);
         
         BrandProcess process = brandProcessService.createBrandProcess(brand);
         
@@ -71,6 +82,11 @@ public class BrandService {
                 .orElseThrow(() -> new EntityNotFoundException("Brand not found"));
         ProcessStatus status = brandProcessService.getProcessStatus(brand.getId());
         return BrandMapper.toDetailDto(brand, status);
+    }
+
+    public Brand getBrandById(Long id) {
+        return brandRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Brand not found"));
     }
 
     @Transactional

@@ -14,6 +14,7 @@ public class BrandMapper {
                 .name(dto.name())
                 .contactEmail(dto.contactEmail())
                 .contactPhone(dto.contactPhone())
+                .logoUrl(dto.logoUrl())
                 .build();
     }
 
@@ -22,7 +23,8 @@ public class BrandMapper {
                 brand.getId(),
                 brand.getName(),
                 brand.getContactEmail(),
-                brand.getContactPhone()
+                brand.getContactPhone(),
+                brand.getLogoUrl()
         );
     }
 
@@ -30,6 +32,7 @@ public class BrandMapper {
         if (dto.name()          != null) entity.setName(dto.name());
         if (dto.contactEmail()  != null) entity.setContactEmail(dto.contactEmail());
         if (dto.contactPhone()  != null) entity.setContactPhone(dto.contactPhone());
+        if (dto.logoUrl()       != null) entity.setLogoUrl(dto.logoUrl());
     }
     public static BrandDetailDto toDetailDto(Brand brand, ProcessStatus status) {
         return new BrandDetailDto(

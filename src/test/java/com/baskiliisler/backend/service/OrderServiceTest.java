@@ -111,6 +111,9 @@ class OrderServiceTest {
                 .createdAt(LocalDateTime.now())
                 .totalPrice(testQuote.getTotalPrice())
                 .status(OrderStatus.PENDING)
+                .customerLogoUrl("logo.png")
+                .description("Test description")
+                .customerTaxNumber("1234567890")
                 .build();
 
         testFactory = Factory.builder()
@@ -139,7 +142,7 @@ class OrderServiceTest {
         @DisplayName("Tekliften sipariş oluşturma - teslim tarihleri ile")
         void whenCreateOrderFromQuote_withDeadlines_thenReturnCreatedOrder() {
             // when
-            Order result = orderService.createOrderFromQuote(testQuote, testDeadlines);
+            Order result = orderService.createOrderFromQuote(testQuote, testDeadlines, "logo.png", "Test description", "1234567890");
 
             // then
             assertThat(result).isNotNull();
@@ -147,6 +150,9 @@ class OrderServiceTest {
             assertThat(result.getTotalPrice()).isEqualTo(testQuote.getTotalPrice());
             assertThat(result.getStatus()).isEqualTo(OrderStatus.PENDING);
             assertThat(result.getCreatedAt()).isNotNull();
+            assertThat(result.getCustomerLogoUrl()).isEqualTo("logo.png");
+            assertThat(result.getDescription()).isEqualTo("Test description");
+            assertThat(result.getCustomerTaxNumber()).isEqualTo("1234567890");
 
             verify(orderRepository).save(any(Order.class));
             verify(orderItemService).assembleAndSaveOrderItems(eq(testQuote), eq(testDeadlines), any(Order.class));
@@ -156,7 +162,7 @@ class OrderServiceTest {
         @DisplayName("Tekliften sipariş oluşturma - teslim tarihleri olmadan")
         void whenCreateOrderFromQuote_withoutDeadlines_thenReturnCreatedOrder() {
             // when
-            Order result = orderService.createOrderFromQuote(testQuote, null);
+            Order result = orderService.createOrderFromQuote(testQuote, null, "logo.png", "Test description", "1234567890");
 
             // then
             assertThat(result).isNotNull();
@@ -164,6 +170,9 @@ class OrderServiceTest {
             assertThat(result.getTotalPrice()).isEqualTo(testQuote.getTotalPrice());
             assertThat(result.getStatus()).isEqualTo(OrderStatus.PENDING);
             assertThat(result.getCreatedAt()).isNotNull();
+            assertThat(result.getCustomerLogoUrl()).isEqualTo("logo.png");
+            assertThat(result.getDescription()).isEqualTo("Test description");
+            assertThat(result.getCustomerTaxNumber()).isEqualTo("1234567890");
 
             verify(orderRepository).save(any(Order.class));
             verify(orderItemService).assembleAndSaveOrderItems(eq(testQuote), isNull(), any(Order.class));
@@ -176,7 +185,7 @@ class OrderServiceTest {
             Map<Long, LocalDate> emptyDeadlines = Map.of();
 
             // when
-            Order result = orderService.createOrderFromQuote(testQuote, emptyDeadlines);
+            Order result = orderService.createOrderFromQuote(testQuote, emptyDeadlines, "logo.png", "Test description", "1234567890");
 
             // then
             assertThat(result).isNotNull();
@@ -184,6 +193,9 @@ class OrderServiceTest {
             assertThat(result.getTotalPrice()).isEqualTo(testQuote.getTotalPrice());
             assertThat(result.getStatus()).isEqualTo(OrderStatus.PENDING);
             assertThat(result.getCreatedAt()).isNotNull();
+            assertThat(result.getCustomerLogoUrl()).isEqualTo("logo.png");
+            assertThat(result.getDescription()).isEqualTo("Test description");
+            assertThat(result.getCustomerTaxNumber()).isEqualTo("1234567890");
 
             verify(orderRepository).save(any(Order.class));
             verify(orderItemService).assembleAndSaveOrderItems(eq(testQuote), eq(emptyDeadlines), any(Order.class));
