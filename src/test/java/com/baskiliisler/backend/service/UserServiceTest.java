@@ -2,6 +2,8 @@ package com.baskiliisler.backend.service;
 
 import com.baskiliisler.backend.common.Role;
 import com.baskiliisler.backend.config.SecurityUtil;
+import com.baskiliisler.backend.dto.UserCreateDto;
+import com.baskiliisler.backend.dto.UserResponseDto;
 import com.baskiliisler.backend.model.User;
 import com.baskiliisler.backend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
@@ -28,6 +31,12 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private EmailService emailService;
+
     @InjectMocks
     private UserService userService;
 
@@ -42,9 +51,74 @@ class UserServiceTest {
                 .id(TEST_USER_ID)
                 .name("Test User")
                 .email(TEST_EMAIL)
+                .phoneNumber("+90 555 123 45 67")
                 .passwordHash(TEST_PASSWORD_HASH)
-                .role(Role.ADMIN)
+                .role(Role.SUPER_ADMIN)
                 .build();
+    }
+
+    @Nested
+    @DisplayName("Kullanıcı Oluşturma Testleri")
+    class CreateUserTests {
+
+        @Test
+        @DisplayName("Başarılı kullanıcı oluşturma")
+        void whenCreateUser_thenReturnUserResponseDto() {
+            // given
+            UserCreateDto createDto = UserCreateDto.builder()
+                    .name("New User")
+                    .email("newuser@example.com")
+                    .phoneNumber("+90 555 999 99 99")
+                    .build();
+
+            String plainPassword = "TestPass123!";
+            String hashedPassword = "$2a$10$hashedPassword";
+
+            when(userRepository.existsByEmail(createDto.getEmail())).thenReturn(false);
+            when(passwordEncoder.encode(any())).thenReturn(hashedPassword);
+            when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+                User user = invocation.getArgument(0);
+                user.setId(1L);
+                return user;
+            });
+
+            // when
+            UserResponseDto result = userService.createUser(createDto);
+
+            // then
+            assertThat(result).isNotNull();
+            assertThat(result.name()).isEqualTo("New User");
+            assertThat(result.email()).isEqualTo("newuser@example.com");
+            assertThat(result.phoneNumber()).isEqualTo("+90 555 999 99 99");
+            assertThat(result.role()).isEqualTo(Role.DEALER_USER);
+
+            verify(userRepository).existsByEmail(createDto.getEmail());
+            verify(passwordEncoder).encode(any());
+            verify(userRepository).save(any(User.class));
+            verify(emailService).sendWelcomeEmail(eq(createDto.getEmail()), eq(createDto.getName()), any());
+        }
+
+        @Test
+        @DisplayName("Mevcut email ile kullanıcı oluşturma")
+        void whenCreateUser_withExistingEmail_thenThrowException() {
+            // given
+            UserCreateDto createDto = UserCreateDto.builder()
+                    .name("New User")
+                    .email("existing@example.com")
+                    .phoneNumber("+90 555 999 99 99")
+                    .build();
+
+            when(userRepository.existsByEmail(createDto.getEmail())).thenReturn(true);
+
+            // when & then
+            assertThatThrownBy(() -> userService.createUser(createDto))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Bu email adresi zaten kullanılıyor");
+
+            verify(userRepository).existsByEmail(createDto.getEmail());
+            verify(userRepository, never()).save(any());
+            verify(emailService, never()).sendWelcomeEmail(any(), any(), any());
+        }
     }
 
     @Nested
@@ -67,7 +141,7 @@ class UserServiceTest {
                 assertThat(result.getId()).isEqualTo(TEST_USER_ID);
                 assertThat(result.getName()).isEqualTo("Test User");
                 assertThat(result.getEmail()).isEqualTo(TEST_EMAIL);
-                assertThat(result.getRole()).isEqualTo(Role.ADMIN);
+                assertThat(result.getRole()).isEqualTo(Role.SUPER_ADMIN);
 
                 verify(userRepository).findById(TEST_USER_ID);
             }
@@ -96,8 +170,8 @@ class UserServiceTest {
     class LoadUserByUsernameTests {
 
         @Test
-        @DisplayName("Başarılı kullanıcı yükleme - ADMIN rolü")
-        void whenLoadUserByUsername_withAdminUser_thenReturnUserDetails() {
+        @DisplayName("Başarılı kullanıcı yükleme - SUPER_ADMIN rolü")
+        void whenLoadUserByUsername_withSuperAdminUser_thenReturnUserDetails() {
             // given
             when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(testUser));
 
@@ -109,7 +183,7 @@ class UserServiceTest {
             assertThat(result.getUsername()).isEqualTo(TEST_EMAIL);
             assertThat(result.getPassword()).isEqualTo(TEST_PASSWORD_HASH);
             assertThat(result.getAuthorities()).hasSize(1);
-            assertThat(result.getAuthorities().iterator().next().getAuthority()).isEqualTo("ROLE_ADMIN");
+            assertThat(result.getAuthorities().iterator().next().getAuthority()).isEqualTo("ROLE_SUPER_ADMIN");
             assertThat(result.isEnabled()).isTrue();
             assertThat(result.isAccountNonExpired()).isTrue();
             assertThat(result.isAccountNonLocked()).isTrue();
@@ -119,15 +193,16 @@ class UserServiceTest {
         }
 
         @Test
-        @DisplayName("Başarılı kullanıcı yükleme - REP rolü")
-        void whenLoadUserByUsername_withRepRole_thenReturnUserDetails() {
+        @DisplayName("Başarılı kullanıcı yükleme - DEALER_USER rolü")
+        void whenLoadUserByUsername_withDealerUserRole_thenReturnUserDetails() {
             // given
             User regularUser = User.builder()
                     .id(2L)
                     .name("Regular User")
                     .email("user@example.com")
+                    .phoneNumber("+90 555 123 45 67")
                     .passwordHash(TEST_PASSWORD_HASH)
-                    .role(Role.REP)
+                    .role(Role.DEALER_USER)
                     .build();
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(regularUser));
@@ -140,7 +215,7 @@ class UserServiceTest {
             assertThat(result.getUsername()).isEqualTo("user@example.com");
             assertThat(result.getPassword()).isEqualTo(TEST_PASSWORD_HASH);
             assertThat(result.getAuthorities()).hasSize(1);
-            assertThat(result.getAuthorities().iterator().next().getAuthority()).isEqualTo("ROLE_REP");
+            assertThat(result.getAuthorities().iterator().next().getAuthority()).isEqualTo("ROLE_DEALER_USER");
 
             verify(userRepository).findByEmail("user@example.com");
         }

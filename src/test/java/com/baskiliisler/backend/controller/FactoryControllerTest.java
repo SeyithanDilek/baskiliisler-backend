@@ -240,6 +240,8 @@ class FactoryControllerTest {
                 "New Factory",
                 "New Address",
                 "+90 555 999 88 77",
+                "FAC001",  // factoryNumber
+                "factory@test.com",  // userEmail
                 true
         );
 
@@ -273,6 +275,8 @@ class FactoryControllerTest {
                 "",  // boş isim
                 "Address",
                 "+90 555 111 22 33",
+                "FAC002",  // factoryNumber
+                "invalid@test.com",  // userEmail
                 true
         );
 
@@ -292,6 +296,8 @@ class FactoryControllerTest {
                 "Updated Factory",
                 "Updated Address",
                 "+90 555 777 66 55",
+                "FAC003",  // factoryNumber
+                "updated@test.com",  // userEmail
                 false
         );
 
@@ -326,6 +332,8 @@ class FactoryControllerTest {
                 "Non Existing Factory",
                 "Address",
                 "+90 555 888 99 00",
+                "FAC999",  // factoryNumber
+                "nonexisting@test.com",  // userEmail
                 true
         );
 
@@ -344,8 +352,8 @@ class FactoryControllerTest {
     void whenListFactories_withOnlyActiveFalse_thenReturnAllFactories() throws Exception {
         // given
         List<FactoryResponseDto> factories = List.of(
-                new FactoryResponseDto(1L, "Factory 1", "Address 1", "+90 555 111 11 11", true),
-                new FactoryResponseDto(2L, "Factory 2", "Address 2", "+90 555 222 22 22", false)
+                new FactoryResponseDto(1L, "Factory 1", "Address 1", "+90 555 111 11 11", "FAC001", true),
+                new FactoryResponseDto(2L, "Factory 2", "Address 2", "+90 555 222 22 22", "FAC002", false)
         );
 
         when(factoryService.list(false)).thenReturn(factories);
@@ -369,7 +377,7 @@ class FactoryControllerTest {
     void whenListFactories_withOnlyActiveTrue_thenReturnOnlyActiveFactories() throws Exception {
         // given
         List<FactoryResponseDto> activeFactories = List.of(
-                new FactoryResponseDto(1L, "Active Factory", "Address", "+90 555 333 33 33", true)
+                new FactoryResponseDto(1L, "Active Factory", "Address", "+90 555 333 33 33", "FAC003", true)
         );
 
         when(factoryService.list(true)).thenReturn(activeFactories);
@@ -390,7 +398,7 @@ class FactoryControllerTest {
     void whenListFactories_withDefaultParams_thenReturnAllFactories() throws Exception {
         // given
         List<FactoryResponseDto> factories = List.of(
-                new FactoryResponseDto(1L, "Factory 1", "Address 1", "+90 555 444 44 44", true)
+                new FactoryResponseDto(1L, "Factory 1", "Address 1", "+90 555 444 44 44", "FAC004", true)
         );
 
         when(factoryService.list(false)).thenReturn(factories); // default false
@@ -409,7 +417,7 @@ class FactoryControllerTest {
         // given
         Long factoryId = 1L;
         FactoryResponseDto factory = new FactoryResponseDto(
-                factoryId, "Test Factory", "Test Address", "+90 555 555 55 55", true
+                factoryId, "Test Factory", "Test Address", "+90 555 555 55 55", "FAC005", true
         );
 
         when(factoryService.get(factoryId)).thenReturn(factory);

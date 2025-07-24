@@ -48,8 +48,9 @@ class AuthServiceTest {
                 .id(1L)
                 .name("Test User")
                 .email(TEST_EMAIL)
+                .phoneNumber("+90 555 123 45 67")
                 .passwordHash("hashedPassword")
-                .role(Role.ADMIN)
+                .role(Role.SUPER_ADMIN)
                 .build();
     }
 

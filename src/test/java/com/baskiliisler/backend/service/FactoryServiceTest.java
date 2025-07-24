@@ -28,6 +28,9 @@ class FactoryServiceTest {
     @Mock
     private FactoryRepository factoryRepository;
 
+    @Mock
+    private UserService userService;
+
     @InjectMocks
     private FactoryService factoryService;
 
@@ -102,6 +105,8 @@ class FactoryServiceTest {
                 "New Factory",
                 "New Address",
                 "+90 555 999 88 77",
+                "FAC001",  // factoryNumber
+                "factory@test.com",  // userEmail
                 true
         );
         
@@ -114,6 +119,7 @@ class FactoryServiceTest {
                 .build();
         
         when(factoryRepository.save(any(Factory.class))).thenReturn(savedFactory);
+        when(userService.createUser(any(), any())).thenReturn(null);  // UserService mock
 
         // when
         Factory result = factoryService.create(dto);
@@ -145,6 +151,8 @@ class FactoryServiceTest {
                 "Updated Factory",
                 "Updated Address",
                 "+90 555 777 66 55",
+                "FAC002",  // factoryNumber
+                "updated@test.com",  // userEmail
                 false
         );
         
@@ -172,6 +180,8 @@ class FactoryServiceTest {
                 "Partially Updated Factory",
                 null,  // address güncellenmeyecek
                 null,  // phoneNumber güncellenmeyecek
+                null,  // factoryNumber güncellenmeyecek
+                "partial@test.com",  // userEmail
                 null   // active güncellenmeyecek
         );
         
@@ -199,6 +209,8 @@ class FactoryServiceTest {
                 "Non Existing Factory",
                 "Address",
                 "+90 555 888 99 00",
+                "FAC999",  // factoryNumber
+                "nonexisting@test.com",  // userEmail
                 true
         );
         

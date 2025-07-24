@@ -59,7 +59,7 @@ class AuthControllerTest {
                 "Test User",
                 "test@example.com",
                 "password123",
-                Role.REP
+                Role.DEALER_USER
         );
 
         testChangePasswordRequest = new ChangePasswordRequestDto(
@@ -71,7 +71,8 @@ class AuthControllerTest {
                 1L,
                 "Test User",
                 "test@example.com",
-                Role.REP
+                "+90 555 123 45 67",
+                Role.DEALER_USER
         );
 
         testAuthResponse = new AuthResponseDto(
@@ -180,7 +181,7 @@ class AuthControllerTest {
         @DisplayName("Geçersiz verilerle kayıt olunmaya çalışıldığında 400 Bad Request döndürmeli")
         void givenInvalidData_whenRegister_thenShouldReturn400() throws Exception {
             // Given
-            RegisterRequestDto invalidRequest = new RegisterRequestDto("", "invalid-email", "123", Role.REP);
+            RegisterRequestDto invalidRequest = new RegisterRequestDto("", "invalid-email", "123", Role.DEALER_USER);
 
             // When & Then
             mockMvc.perform(post("/auth/register")

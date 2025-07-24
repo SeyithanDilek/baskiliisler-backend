@@ -19,6 +19,7 @@ public class Factory {
     @Column(nullable = false, unique = true) private String name;
     private String address;
     private String phoneNumber;
+    private String factoryNumber;  // Fabrika numarası (opsiyonel)
 
     @Builder.Default
     private boolean active = true;

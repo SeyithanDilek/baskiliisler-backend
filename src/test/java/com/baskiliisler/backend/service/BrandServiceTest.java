@@ -1,11 +1,13 @@
 package com.baskiliisler.backend.service;
 
+import com.baskiliisler.backend.dto.BrandDetailDto;
 import com.baskiliisler.backend.dto.BrandRequestDto;
 import com.baskiliisler.backend.dto.BrandUpdateDto;
-import com.baskiliisler.backend.dto.BrandDetailDto;
 import com.baskiliisler.backend.model.Brand;
 import com.baskiliisler.backend.model.BrandProcess;
+import com.baskiliisler.backend.model.User;
 import com.baskiliisler.backend.repository.BrandRepository;
+import com.baskiliisler.backend.repository.UserRepository;
 import com.baskiliisler.backend.type.ProcessStatus;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,20 +15,19 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,6 +35,9 @@ class BrandServiceTest {
 
     @Mock
     private BrandRepository brandRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @Mock
     private BrandProcessService brandProcessService;
@@ -44,11 +48,18 @@ class BrandServiceTest {
     @Mock
     private com.baskiliisler.backend.notification.service.NotificationService notificationService;
 
+    @Mock
+    private SecurityContext securityContext;
+
+    @Mock
+    private Authentication authentication;
+
     @InjectMocks
     private BrandService brandService;
 
     private BrandRequestDto testBrandRequest;
     private Brand testBrand;
+    private User testUser;
 
     @BeforeEach
     void setUp() {
@@ -59,12 +70,19 @@ class BrandServiceTest {
                 "https://example.com/logo.png"
         );
 
+        testUser = User.builder()
+                .id(1L)
+                .name("testuser")
+                .email("test@example.com")
+                .build();
+
         testBrand = Brand.builder()
                 .id(1L)
                 .name(testBrandRequest.name())
                 .contactEmail(testBrandRequest.contactEmail())
                 .contactPhone(testBrandRequest.contactPhone())
                 .logoUrl(testBrandRequest.logoUrl())
+                .assignedUser(testUser)
                 .build();
     }
 
@@ -77,11 +95,13 @@ class BrandServiceTest {
         void whenCreateBrand_thenSaveBrandAndProcess() {
             // given
             BrandProcess mockProcess = BrandProcess.builder()
+                    .id(1L)
                     .brand(testBrand)
                     .status(ProcessStatus.SAMPLE_LEFT)
                     .build();
 
             when(brandRepository.findByName(testBrandRequest.name())).thenReturn(Optional.empty());
+            when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(brandRepository.save(any(Brand.class))).thenReturn(testBrand);
             when(brandProcessService.createBrandProcess(any(Brand.class))).thenReturn(mockProcess);
             doNothing().when(brandProcessHistoryService).saveProcessHistoryForChangeStatus(
@@ -91,6 +111,11 @@ class BrandServiceTest {
                     anyString()
             );
 
+            // Mock SecurityContext
+            when(securityContext.getAuthentication()).thenReturn(authentication);
+            when(authentication.getPrincipal()).thenReturn(1L);
+            SecurityContextHolder.setContext(securityContext);
+
             // when
             Brand savedBrand = brandService.createBrand(testBrandRequest);
 
@@ -99,6 +124,7 @@ class BrandServiceTest {
             assertThat(savedBrand.getName()).isEqualTo(testBrandRequest.name());
             assertThat(savedBrand.getContactEmail()).isEqualTo(testBrandRequest.contactEmail());
             assertThat(savedBrand.getContactPhone()).isEqualTo(testBrandRequest.contactPhone());
+            assertThat(savedBrand.getAssignedUser()).isEqualTo(testUser);
             
             verify(brandProcessService).createBrandProcess(any(Brand.class));
             verify(brandProcessHistoryService).saveProcessHistoryForChangeStatus(

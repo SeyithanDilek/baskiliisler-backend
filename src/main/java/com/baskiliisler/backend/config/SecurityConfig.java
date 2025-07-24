@@ -33,6 +33,9 @@ public class SecurityConfig {
                 .exceptionHandling(eh -> eh
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN);
                         }))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(

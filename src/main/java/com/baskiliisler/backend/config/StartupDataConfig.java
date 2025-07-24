@@ -24,8 +24,9 @@ public class StartupDataConfig {
                 repo.save(User.builder()
                         .name("Admin")
                         .email("admin@local")
+                        .phoneNumber("+90 555 000 00 00")
                         .passwordHash(encoder.encode("admin123"))
-                        .role(Role.ADMIN)
+                        .role(Role.SUPER_ADMIN)
                         .build());
                 System.out.println("✅ Admin kullanıcısı oluşturuldu → admin@local / admin123");
             } else {

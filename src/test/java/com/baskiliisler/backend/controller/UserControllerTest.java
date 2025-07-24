@@ -56,21 +56,24 @@ class UserControllerTest {
                 .id(1L)
                 .name("Test User")
                 .email("test@example.com")
+                .phoneNumber("+90 555 123 45 67")
                 .passwordHash("hashedPassword")
-                .role(Role.ADMIN)
+                .role(Role.SUPER_ADMIN)
                 .build();
 
         testUserResponseDto = new UserResponseDto(
                 1L,
                 "Test User",
                 "test@example.com",
-                Role.ADMIN
+                "+90 555 123 45 67",
+                Role.SUPER_ADMIN
         );
 
         testUserUpdateDto = new UserUpdateDto(
                 "Updated User",
                 "updated@example.com",
-                Role.ADMIN
+                "+90 555 999 99 99",
+                Role.SUPER_ADMIN
         );
     }
 
@@ -138,7 +141,7 @@ class UserControllerTest {
         @DisplayName("Geçersiz verilerle güncelleme yapıldığında 400 Bad Request döndürmeli")
         void givenInvalidData_whenUpdateCurrentUser_thenShouldReturn400() throws Exception {
             // Given
-            UserUpdateDto invalidDto = new UserUpdateDto("", "invalid-email", Role.ADMIN);
+            UserUpdateDto invalidDto = new UserUpdateDto("", "invalid-email", "+90 555 000 00 00", Role.SUPER_ADMIN);
 
             // When & Then
             mockMvc.perform(patch("/users/me")

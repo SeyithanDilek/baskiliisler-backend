@@ -19,6 +19,8 @@ class FactoryMapperTest {
                 "Test Factory",
                 "Test Address, Istanbul",
                 "+90 555 123 45 67",
+                "FAC001",  // factoryNumber
+                "test@factory.com",  // userEmail
                 true
         );
 
@@ -42,6 +44,8 @@ class FactoryMapperTest {
                 "Default Factory",
                 "Default Address",
                 "+90 555 111 22 33",
+                "FAC002",  // factoryNumber
+                "default@factory.com",  // userEmail
                 null  // null active
         );
 
@@ -64,6 +68,8 @@ class FactoryMapperTest {
                 "Inactive Factory",
                 "Inactive Address",
                 "+90 555 999 88 77",
+                "FAC003",  // factoryNumber
+                "inactive@factory.com",  // userEmail
                 false
         );
 

@@ -10,12 +10,13 @@ public class FactoryMapper {
                 .name(d.name())
                 .address(d.address())
                 .phoneNumber(d.phoneNumber())
+                .factoryNumber(d.factoryNumber())
                 .active(d.active() == null || d.active())   // default true
                 .build();
     }
     public static FactoryResponseDto toDto(Factory f) {
         return new FactoryResponseDto(
                 f.getId(), f.getName(), f.getAddress(),
-                f.getPhoneNumber(), f.isActive());
+                f.getPhoneNumber(), f.getFactoryNumber(), f.isActive());
     }
 }

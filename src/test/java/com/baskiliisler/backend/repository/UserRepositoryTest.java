@@ -27,8 +27,9 @@ class UserRepositoryTest {
         testUser = User.builder()
                 .name("Test User")
                 .email("test@example.com")
+                .phoneNumber("+90 555 123 45 67")
                 .passwordHash("hashedPassword")
-                .role(Role.REP)
+                .role(Role.DEALER_USER)
                 .build();
     }
 

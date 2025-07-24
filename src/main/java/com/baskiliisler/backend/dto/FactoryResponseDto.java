@@ -5,5 +5,6 @@ public record FactoryResponseDto(
         String name,
         String address,
         String phoneNumber,
+        String factoryNumber,
         boolean active
 ) {}

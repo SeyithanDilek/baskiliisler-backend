@@ -24,10 +24,13 @@ public class User {
     @Column(nullable = false, unique = true, length = 120)
     private String email;
 
+    @Column(name = "phone_number", nullable = false, length = 20)
+    private String phoneNumber;
+
     @Column(name = "password_hash", nullable = false, length = 200)
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, length = 20)
     private Role role;
 }

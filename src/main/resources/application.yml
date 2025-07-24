@@ -37,6 +37,21 @@ spring:
         default_schema: public
         hbm2ddl:
           auto: update
+
+  # Email konfigürasyonu
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:ssseyit.65@gmail.com}
+    password: ${MAIL_PASSWORD:gdxt awac tmzo larl}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    default-encoding: UTF-8
+
   management:
     endpoints:
       web:
@@ -83,6 +98,10 @@ logging:
     org.apache.tomcat: WARN
   pattern:
     console: "%d{HH:mm:ss} %-5level %logger{20} - %msg%n"
+
+# App konfigürasyonu
+app:
+  login-url: ${LOGIN_URL:http://localhost:3000/login}
 
 # Server configuration
 

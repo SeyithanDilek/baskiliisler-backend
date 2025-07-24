@@ -56,7 +56,8 @@ class JwtFilterTest {
                 .id(1L)
                 .email("test@example.com")
                 .name("Test User")
-                .role(Role.REP)
+                .phoneNumber("+90 555 123 45 67")
+                .role(Role.DEALER_USER)
                 .build();
         SecurityContextHolder.clearContext();
     }

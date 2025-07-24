@@ -1,13 +1,17 @@
 package com.baskiliisler.backend.service;
 
+import com.baskiliisler.backend.common.Role;
 import com.baskiliisler.backend.config.SecurityUtil;
+import com.baskiliisler.backend.dto.UserCreateDto;
 import com.baskiliisler.backend.dto.UserResponseDto;
 import com.baskiliisler.backend.dto.UserUpdateDto;
 import com.baskiliisler.backend.mapper.UserMapper;
 import com.baskiliisler.backend.model.User;
 import com.baskiliisler.backend.repository.UserRepository;
+import com.baskiliisler.backend.util.PasswordGenerator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -22,6 +26,34 @@ import java.util.List;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
+
+    @Transactional
+    public UserResponseDto createUser(UserCreateDto dto) {
+        return createUser(dto, Role.DEALER_USER);
+    }
+
+    @Transactional
+    public UserResponseDto createUser(UserCreateDto dto, Role role) {
+        // Email uniqueness kontrolü
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new IllegalArgumentException("Bu email adresi zaten kullanılıyor");
+        }
+        
+        // 12 harfli şifre oluştur
+        String plainPassword = PasswordGenerator.generatePassword();
+        String passwordHash = passwordEncoder.encode(plainPassword);
+        
+        // Yeni kullanıcıyı belirtilen rol ile oluştur
+        User user = UserMapper.toUser(dto, passwordHash, role);
+        User savedUser = userRepository.save(user);
+        
+        // Hoşgeldiniz emaili gönder
+        emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getName(), plainPassword);
+        
+        return UserMapper.toResponseDto(savedUser);
+    }
 
     public User getCurrentUser() {
         return userRepository.findById(SecurityUtil.currentUserId())
@@ -65,7 +97,7 @@ public class UserService implements UserDetailsService {
         }
         
         // Kendi bilgilerini güncellerken role değiştiremez
-        UserUpdateDto safeDto = new UserUpdateDto(dto.name(), dto.email(), user.getRole());
+        UserUpdateDto safeDto = new UserUpdateDto(dto.name(), dto.email(), dto.phoneNumber(), user.getRole());
         UserMapper.updateUserFromDto(user, safeDto);
         User savedUser = userRepository.save(user);
         return UserMapper.toResponseDto(savedUser);

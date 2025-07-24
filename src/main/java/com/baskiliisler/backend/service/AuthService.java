@@ -52,13 +52,13 @@ public class AuthService {
         }
 
         // Role kontrolü - sadece ADMIN başka ADMIN oluşturabilir
-        if (request.role() == Role.ADMIN) {
+        if (request.role() == Role.SUPER_ADMIN) {
             try {
                 Long currentUserId = SecurityUtil.currentUserId();
                 User currentUser = userRepository.findById(currentUserId)
                         .orElseThrow(() -> new EntityNotFoundException("Mevcut kullanıcı bulunamadı"));
                 
-                if (currentUser.getRole() != Role.ADMIN) {
+                if (currentUser.getRole() != Role.SUPER_ADMIN) {
                     throw new IllegalArgumentException("Sadece ADMIN kullanıcıları başka ADMIN oluşturabilir");
                 }
             } catch (Exception e) {
@@ -75,7 +75,7 @@ public class AuthService {
                 .name(request.name())
                 .email(request.email())
                 .passwordHash(passwordEncoder.encode(request.password()))
-                .role(request.role() != null ? request.role() : Role.REP)
+                .role(request.role() != null ? request.role() : Role.DEALER_USER)
                 .build();
 
         User savedUser = userRepository.save(user);

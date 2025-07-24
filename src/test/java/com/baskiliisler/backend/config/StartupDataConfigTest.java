@@ -53,7 +53,7 @@ class StartupDataConfigTest {
         assertThat(savedUser.getName()).isEqualTo("Admin");
         assertThat(savedUser.getEmail()).isEqualTo("admin@local");
         assertThat(savedUser.getPasswordHash()).isEqualTo("hashedPassword");
-        assertThat(savedUser.getRole()).isEqualTo(Role.ADMIN);
+        assertThat(savedUser.getRole()).isEqualTo(Role.SUPER_ADMIN);
     }
 
     @Test
@@ -63,8 +63,9 @@ class StartupDataConfigTest {
         User existingAdmin = User.builder()
                 .name("Existing Admin")
                 .email("admin@local")
+                .phoneNumber("+90 555 000 00 00")
                 .passwordHash("existingHash")
-                .role(Role.ADMIN)
+                .role(Role.SUPER_ADMIN)
                 .build();
         when(userRepository.findByEmail("admin@local")).thenReturn(Optional.of(existingAdmin));
 

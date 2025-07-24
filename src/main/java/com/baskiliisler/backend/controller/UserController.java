@@ -1,5 +1,6 @@
 package com.baskiliisler.backend.controller;
 
+import com.baskiliisler.backend.dto.UserCreateDto;
 import com.baskiliisler.backend.dto.UserResponseDto;
 import com.baskiliisler.backend.dto.UserUpdateDto;
 import com.baskiliisler.backend.mapper.UserMapper;
@@ -23,6 +24,14 @@ public class UserController {
 
     private final UserService userService;
 
+    @PostMapping
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('DEALER_ADMIN')")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Yeni kullanıcı oluştur", description = "Yeni bir kullanıcı oluşturur ve hoşgeldiniz emaili gönderir (Sadece SUPER_ADMIN ve DEALER_ADMIN)")
+    public UserResponseDto createUser(@RequestBody @Valid UserCreateDto dto) {
+        return userService.createUser(dto);
+    }
+
     @GetMapping("/me")
     @Operation(summary = "Mevcut kullanıcı bilgilerini getir", description = "Giriş yapmış kullanıcının bilgilerini getirir")
     public UserResponseDto getCurrentUser() {
@@ -37,8 +46,8 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Tüm kullanıcıları listele", description = "Sistemdeki tüm kullanıcıları listeler (Sadece ADMIN)")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('DEALER_ADMIN')")
+    @Operation(summary = "Tüm kullanıcıları listele", description = "Sistemdeki tüm kullanıcıları listeler (Sadece SUPER_ADMIN ve DEALER_ADMIN)")
     public List<UserResponseDto> getAllUsers() {
         return userService.getAllUsers().stream()
                 .map(UserMapper::toResponseDto)
@@ -46,23 +55,23 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "ID ile kullanıcı getir", description = "Belirtilen ID'ye sahip kullanıcıyı getirir (Sadece ADMIN)")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('DEALER_ADMIN')")
+    @Operation(summary = "ID ile kullanıcı getir", description = "Belirtilen ID'ye sahip kullanıcıyı getirir (Sadece SUPER_ADMIN ve DEALER_ADMIN)")
     public UserResponseDto getUserById(@PathVariable Long id) {
         return userService.findById(id);
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Kullanıcı güncelle", description = "Belirtilen ID'ye sahip kullanıcıyı günceller (Sadece ADMIN)")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('DEALER_ADMIN')")
+    @Operation(summary = "Kullanıcı güncelle", description = "Belirtilen ID'ye sahip kullanıcıyı günceller (Sadece SUPER_ADMIN ve DEALER_ADMIN)")
     public UserResponseDto updateUser(@PathVariable Long id, @RequestBody @Valid UserUpdateDto dto) {
         return userService.updateUser(id, dto);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('DEALER_ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Kullanıcı sil", description = "Belirtilen ID'ye sahip kullanıcıyı siler (Sadece ADMIN)")
+    @Operation(summary = "Kullanıcı sil", description = "Belirtilen ID'ye sahip kullanıcıyı siler (Sadece SUPER_ADMIN ve DEALER_ADMIN)")
     public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
     }
