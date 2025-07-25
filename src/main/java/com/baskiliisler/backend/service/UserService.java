@@ -6,7 +6,9 @@ import com.baskiliisler.backend.dto.UserCreateDto;
 import com.baskiliisler.backend.dto.UserResponseDto;
 import com.baskiliisler.backend.dto.UserUpdateDto;
 import com.baskiliisler.backend.mapper.UserMapper;
+import com.baskiliisler.backend.model.Dealer;
 import com.baskiliisler.backend.model.User;
+import com.baskiliisler.backend.repository.DealerRepository;
 import com.baskiliisler.backend.repository.UserRepository;
 import com.baskiliisler.backend.util.PasswordGenerator;
 import jakarta.persistence.EntityNotFoundException;
@@ -28,6 +30,7 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final DealerRepository dealerRepository;
 
     @Transactional
     public UserResponseDto createUser(UserCreateDto dto) {
@@ -36,6 +39,11 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public UserResponseDto createUser(UserCreateDto dto, Role role) {
+        return createUser(dto, role, null);
+    }
+    
+    @Transactional
+    public UserResponseDto createUser(UserCreateDto dto, Role role, Long dealerId) {
         // Email uniqueness kontrolü
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new IllegalArgumentException("Bu email adresi zaten kullanılıyor");
@@ -45,8 +53,15 @@ public class UserService implements UserDetailsService {
         String plainPassword = PasswordGenerator.generatePassword();
         String passwordHash = passwordEncoder.encode(plainPassword);
         
+        // Dealer'ı bul (eğer dealerId verilmişse)
+        Dealer dealer = null;
+        if (dealerId != null) {
+            dealer = dealerRepository.findById(dealerId)
+                    .orElseThrow(() -> new IllegalArgumentException("Dealer bulunamadı: " + dealerId));
+        }
+        
         // Yeni kullanıcıyı belirtilen rol ile oluştur
-        User user = UserMapper.toUser(dto, passwordHash, role);
+        User user = UserMapper.toUser(dto, passwordHash, role, dealer);
         User savedUser = userRepository.save(user);
         
         // Hoşgeldiniz emaili gönder

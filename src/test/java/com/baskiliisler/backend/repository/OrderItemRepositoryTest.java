@@ -34,14 +34,25 @@ class OrderItemRepositoryTest {
     private OrderItem testOrderItem;
     private Order testOrder;
     private Product testProduct;
+    private Dealer testDealer;
 
     @BeforeEach
     void setUp() {
+        // Test için dealer oluştur
+        testDealer = com.baskiliisler.backend.model.Dealer.builder()
+                .code("TEST")
+                .name("Test Dealer")
+                .master(false)
+                .build();
+        entityManager.persist(testDealer);
+        entityManager.flush();
+        
         Brand testBrand = Brand.builder()
                 .name("Test Brand")
                 .contactEmail("test@brand.com")
                 .contactPhone("1234567890")
                 .build();
+        testBrand.setDealer(testDealer);
         
         entityManager.persist(testBrand);
 
@@ -54,6 +65,7 @@ class OrderItemRepositoryTest {
                 .totalPrice(BigDecimal.valueOf(1000))
                 .items(new ArrayList<>())
                 .build();
+        testQuote.setDealer(testDealer);
         
         entityManager.persist(testQuote);
 
@@ -65,6 +77,7 @@ class OrderItemRepositoryTest {
                 .totalPrice(BigDecimal.valueOf(1000))
                 .status(OrderStatus.PENDING)
                 .build();
+        testOrder.setDealer(testDealer);
         
         entityManager.persist(testOrder);
 
@@ -76,6 +89,7 @@ class OrderItemRepositoryTest {
                 .taxRate(BigDecimal.valueOf(18.00))
                 .active(true)
                 .build();
+        testProduct.setDealer(testDealer);
 
         entityManager.persist(testProduct);
 
@@ -141,6 +155,7 @@ class OrderItemRepositoryTest {
                 .taxRate(BigDecimal.valueOf(18.00))
                 .active(true)
                 .build();
+        newProduct.setDealer(testDealer);
         
         entityManager.persist(newProduct);
 

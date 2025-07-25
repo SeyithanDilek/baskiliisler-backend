@@ -16,8 +16,9 @@ import java.util.List;
 @Entity
 @Getter @Setter @Builder
 @NoArgsConstructor @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Table(name = "quotes")
-public class Quote {
+public class Quote extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

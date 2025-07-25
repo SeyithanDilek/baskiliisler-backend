@@ -1,6 +1,7 @@
 package com.baskiliisler.backend.repository;
 
 import com.baskiliisler.backend.model.Brand;
+import com.baskiliisler.backend.model.Dealer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,12 +21,23 @@ class BrandRepositoryTest {
     private BrandRepository brandRepository;
 
     private Brand testBrand;
+    private Dealer testDealer;
 
     @BeforeEach
     void setUp() {
+        // Test için dealer oluştur
+        testDealer = Dealer.builder()
+                .code("TEST")
+                .name("Test Dealer")
+                .master(false)
+                .build();
+        entityManager.persist(testDealer);
+        entityManager.flush();
+        
         testBrand = Brand.builder()
                 .name("Test Brand")
                 .build();
+        testBrand.setDealer(testDealer);
     }
 
     @Test

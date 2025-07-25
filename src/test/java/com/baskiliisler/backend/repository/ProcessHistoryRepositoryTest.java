@@ -2,6 +2,7 @@ package com.baskiliisler.backend.repository;
 
 import com.baskiliisler.backend.model.Brand;
 import com.baskiliisler.backend.model.BrandProcess;
+import com.baskiliisler.backend.model.Dealer;
 import com.baskiliisler.backend.model.ProcessHistory;
 import com.baskiliisler.backend.type.ProcessStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,14 +28,25 @@ class ProcessHistoryRepositoryTest {
 
     private Brand testBrand;
     private BrandProcess testBrandProcess;
+    private Dealer testDealer;
 
     @BeforeEach
     void setUp() {
+        // Test için dealer oluştur
+        testDealer = com.baskiliisler.backend.model.Dealer.builder()
+                .code("TEST")
+                .name("Test Dealer")
+                .master(false)
+                .build();
+        entityManager.persist(testDealer);
+        entityManager.flush();
+        
         testBrand = Brand.builder()
                 .name("Test Brand")
                 .contactEmail("test@brand.com")
                 .contactPhone("1234567890")
                 .build();
+        testBrand.setDealer(testDealer);
         
         entityManager.persist(testBrand);
 
@@ -117,6 +129,7 @@ class ProcessHistoryRepositoryTest {
                 .contactEmail("nohistory@brand.com")
                 .contactPhone("1111111111")
                 .build();
+        brandWithoutHistory.setDealer(testDealer);
         
         Brand saved = entityManager.persistAndFlush(brandWithoutHistory);
 

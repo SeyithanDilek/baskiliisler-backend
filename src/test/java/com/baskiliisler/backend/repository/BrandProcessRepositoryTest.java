@@ -26,8 +26,18 @@ class BrandProcessRepositoryTest {
 
     @BeforeEach
     void setUp() {
+        // Test için dealer oluştur
+        var testDealer = com.baskiliisler.backend.model.Dealer.builder()
+                .code("TEST")
+                .name("Test Dealer")
+                .master(false)
+                .build();
+        entityManager.persist(testDealer);
+        entityManager.flush();
+        
         testBrand = Brand.builder()
                 .name("Test Brand")
+                .dealer(testDealer)
                 .build();
         entityManager.persist(testBrand);
 

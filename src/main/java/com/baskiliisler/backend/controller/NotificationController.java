@@ -23,7 +23,7 @@ public class NotificationController {
      * Tüm global bildirimleri getir
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<List<NotificationResponseDto>> getAllNotifications() {
         log.info("Getting all global notifications");
         List<Notification> notifications = notificationService.getAllNotifications();
@@ -37,7 +37,7 @@ public class NotificationController {
      * Okunmamış global bildirimleri getir
      */
     @GetMapping("/unread")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<List<NotificationResponseDto>> getUnreadNotifications() {
         log.info("Getting unread global notifications");
         List<Notification> notifications = notificationService.getUnreadNotifications();
@@ -51,7 +51,7 @@ public class NotificationController {
      * Okunmamış global bildirim sayısını getir
      */
     @GetMapping("/count")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Long> getUnreadCount() {
         log.info("Getting unread global notification count");
         long count = notificationService.getUnreadCount();
@@ -62,7 +62,7 @@ public class NotificationController {
      * Belirli bir bildirimi okundu olarak işaretle
      */
     @PostMapping("/{id}/read")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Void> markAsRead(@PathVariable Long id) {
         log.info("Marking notification {} as read", id);
         notificationService.markAsRead(id);
@@ -73,7 +73,7 @@ public class NotificationController {
      * Tüm bildirimleri okundu olarak işaretle
      */
     @PostMapping("/read-all")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Void> markAllAsRead() {
         log.info("Marking all global notifications as read");
         notificationService.markAllAsRead();

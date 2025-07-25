@@ -4,6 +4,7 @@ import com.baskiliisler.backend.common.Role;
 import com.baskiliisler.backend.dto.UserCreateDto;
 import com.baskiliisler.backend.dto.UserResponseDto;
 import com.baskiliisler.backend.dto.UserUpdateDto;
+import com.baskiliisler.backend.model.Dealer;
 import com.baskiliisler.backend.model.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -20,12 +21,17 @@ public class UserMapper {
     }
     
     public static User toUser(UserCreateDto dto, String passwordHash, Role role) {
+        return toUser(dto, passwordHash, role, null);
+    }
+    
+    public static User toUser(UserCreateDto dto, String passwordHash, Role role, Dealer dealer) {
         return User.builder()
                 .name(dto.getName())
                 .email(dto.getEmail())
                 .phoneNumber(dto.getPhoneNumber())
                 .passwordHash(passwordHash)
                 .role(role)
+                .dealer(dealer)
                 .build();
     }
     

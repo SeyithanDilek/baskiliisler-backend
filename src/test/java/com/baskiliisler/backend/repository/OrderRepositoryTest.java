@@ -34,14 +34,25 @@ class OrderRepositoryTest {
     private Brand testBrand;
     private Quote testQuote;
     private Factory testFactory;
+    private Dealer testDealer;
 
     @BeforeEach
     void setUp() {
+        // Test için dealer oluştur
+        testDealer = com.baskiliisler.backend.model.Dealer.builder()
+                .code("TEST")
+                .name("Test Dealer")
+                .master(false)
+                .build();
+        entityManager.persist(testDealer);
+        entityManager.flush();
+        
         testBrand = Brand.builder()
                 .name("Test Brand")
                 .contactEmail("test@brand.com")
                 .contactPhone("1234567890")
                 .build();
+        testBrand.setDealer(testDealer);
         
         entityManager.persist(testBrand);
 
@@ -54,13 +65,13 @@ class OrderRepositoryTest {
                 .totalPrice(BigDecimal.valueOf(2500))
                 .items(new ArrayList<>())
                 .build();
+        testQuote.setDealer(testDealer);
         
         entityManager.persist(testQuote);
 
         testFactory = Factory.builder()
                 .name("Test Factory")
                 .address("Test Address")
-
                 .active(true)
                 .build();
         
@@ -74,6 +85,7 @@ class OrderRepositoryTest {
                 .taxRate(BigDecimal.valueOf(18.00))
                 .active(true)
                 .build();
+        testProduct.setDealer(testDealer);
         
         entityManager.persist(testProduct);
 
@@ -86,6 +98,7 @@ class OrderRepositoryTest {
                 .totalPrice(BigDecimal.valueOf(2500))
                 .status(OrderStatus.PENDING)
                 .build();
+        testOrder.setDealer(testDealer);
 
         OrderItem orderItem = OrderItem.builder()
                 .order(testOrder)
@@ -168,6 +181,7 @@ class OrderRepositoryTest {
                 .totalPrice(BigDecimal.valueOf(1500))
                 .items(new ArrayList<>())
                 .build();
+        newQuote.setDealer(testDealer);
         
         entityManager.persist(newQuote);
         
@@ -179,6 +193,7 @@ class OrderRepositoryTest {
                 .totalPrice(BigDecimal.valueOf(1500))
                 .status(OrderStatus.PENDING)
                 .build();
+        newOrder.setDealer(testDealer);
 
         // when
         Order result = orderRepository.save(newOrder);
@@ -204,6 +219,7 @@ class OrderRepositoryTest {
                 .totalPrice(BigDecimal.valueOf(500))
                 .items(new ArrayList<>())
                 .build();
+        deleteQuote.setDealer(testDealer);
         
         entityManager.persist(deleteQuote);
         
@@ -214,6 +230,7 @@ class OrderRepositoryTest {
                 .totalPrice(BigDecimal.valueOf(500))
                 .status(OrderStatus.PENDING)
                 .build());
+        saved.setDealer(testDealer);
 
         // when
         orderRepository.deleteById(saved.getId());

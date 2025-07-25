@@ -12,7 +12,8 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Product {
+@EqualsAndHashCode(callSuper = true)
+public class Product extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "products_id_seq")
     @SequenceGenerator(name = "products_id_seq", sequenceName = "products_id_seq", allocationSize = 1)
@@ -34,7 +35,7 @@ public class Product {
     @Column(name = "tax_rate", nullable = false, precision = 5, scale = 2)
     @Builder.Default
     private BigDecimal taxRate = BigDecimal.valueOf(18.00);  // KDV oranı
-    
+
     @Builder.Default
     private boolean active = true;
 }

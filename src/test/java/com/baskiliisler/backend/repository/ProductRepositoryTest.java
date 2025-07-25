@@ -31,6 +31,15 @@ class ProductRepositoryTest {
 
     @BeforeEach
     void setUp() {
+        // Test için dealer oluştur
+        var testDealer = com.baskiliisler.backend.model.Dealer.builder()
+                .code("TEST")
+                .name("Test Dealer")
+                .master(false)
+                .build();
+        entityManager.persist(testDealer);
+        entityManager.flush();
+        
         activeProduct = Product.builder()
                 .name("Orta Karton Bardak")
                 .description("Orta boy karton bardak açıklaması")
@@ -39,6 +48,7 @@ class ProductRepositoryTest {
                 .taxRate(new BigDecimal("18.00"))
                 .active(true)
                 .build();
+        activeProduct.setDealer(testDealer);
 
         inactiveProduct = Product.builder()
                 .name("Büyük Karton Bardak")
@@ -48,6 +58,7 @@ class ProductRepositoryTest {
                 .taxRate(new BigDecimal("18.00"))
                 .active(false)
                 .build();
+        inactiveProduct.setDealer(testDealer);
 
         entityManager.persistAndFlush(activeProduct);
         entityManager.persistAndFlush(inactiveProduct);
