@@ -127,24 +127,10 @@ public class OrderService {
         // Eğer DELIVERED durumuna geçiyorsa deliveredAt'i set et
         if (newStatus == OrderStatus.DELIVERED && oldStatus != OrderStatus.DELIVERED) {
             order.setDeliveredAt(LocalDateTime.now());
-            
-            // Teslim bildirimi gönder - hata durumunda ana işlem devam etsin
-            try {
-                notificationService.notifyNewOrder(order); // ORDER_DELIVERED için ayrı method ekleyeceğiz
-            } catch (Exception e) {
-                log.warn("Notification gönderilirken hata oluştu: {}", e.getMessage());
-            }
         }
 
-        // Notification service null kontrolü ekle
-        if (notificationService != null) {
-            try {
-                // Status değişikliği bildirimi gönder
-                log.info("Order {} status updated from {} to {}", orderId, oldStatus, newStatus);
-            } catch (Exception e) {
-                log.warn("Status update notification gönderilirken hata oluştu: {}", e.getMessage());
-            }
-        }
+        // Log status değişikliği
+        log.info("Order {} status updated from {} to {}", orderId, oldStatus, newStatus);
 
         return orderRepository.save(order);
     }
@@ -167,24 +153,10 @@ public class OrderService {
         // Eğer DELIVERED durumuna geçiyorsa deliveredAt'i set et
         if (newStatus == OrderStatus.DELIVERED && oldStatus != OrderStatus.DELIVERED) {
             order.setDeliveredAt(LocalDateTime.now());
-            
-            // Teslim bildirimi gönder - hata durumunda ana işlem devam etsin
-            try {
-                notificationService.notifyNewOrder(order);
-            } catch (Exception e) {
-                log.warn("Notification gönderilirken hata oluştu: {}", e.getMessage());
-            }
         }
 
-        // Notification service null kontrolü ekle
-        if (notificationService != null) {
-            try {
-                // Status değişikliği bildirimi gönder
-                log.info("Factory Order {} status updated from {} to {}", orderId, oldStatus, newStatus);
-            } catch (Exception e) {
-                log.warn("Factory status update notification gönderilirken hata oluştu: {}", e.getMessage());
-            }
-        }
+        // Log status değişikliği
+        log.info("Factory Order {} status updated from {} to {}", orderId, oldStatus, newStatus);
 
         return orderRepository.save(order);
     }
