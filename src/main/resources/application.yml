@@ -1,32 +1,107 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/bis
-    username: bis
-    password: bis
+    url: jdbc:postgresql://dpg-d1vtqu49c44c73e72pn0-a.frankfurt-postgres.render.com:5432/baskili_isler_db?sslmode=require
+    username: baskili_isler_db_user
+    password: xRieSiETi4zEHPdQEAzDdeyu4FBicdaK
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5           # Neon için daha yüksek ayar
+      minimum-idle: 1                # En az 1 idle connection
+      connection-timeout: 30000      # 30 saniye connection timeout
+      idle-timeout: 300000           # 5 dakika idle timeout
+      max-lifetime: 1800000          # 30 dakika max lifetime
+      leak-detection-threshold: 60000 # 1 dakika leak detection
+      pool-name: BaskiliIslerHikariCP
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: update              # DDL-auto'yu update yap
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+    show-sql: true                   # SQL sorgularını göster
     properties:
       hibernate:
-        format_sql: true
-    open-in-view: false
+        format_sql: false
+        jdbc:
+          batch_size: 25
+        order_inserts: true
+        order_updates: true
+        connection:
+          provider_disables_autocommit: false
+          auto_commit: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        id:
+          new_generator_mappings: false
+          db_structure_naming_strategy: legacy
+        default_schema: public
+        hbm2ddl:
+          auto: update
 
+  # Email konfigürasyonu
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:ssseyit.65@gmail.com}
+    password: ${MAIL_PASSWORD:gdxt awac tmzo larl}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    default-encoding: UTF-8
+
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health
+    endpoint:
+      health:
+        show-details: never
   flyway:
     baseline-on-migrate: true
-    enabled: true
+    enabled: false                   # DDL-auto create kullandığımız için Flyway'i kapat
 
 server:
   port: 8088
+  error:
+    include-message: never
+  tomcat:
+    threads:
+          max: 50
+          min-spare: 5
+
+jwt:
+  secret: myVerySecureJwtSecretKey123456789012345678901234567890
+  expiration: 24H
+
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operationsSorter: alpha
+    tagsSorter: alpha
+    displayRequestDuration: true
+  show-actuator: true
 
 logging:
   level:
-    root: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
+    root: WARN
+    com.baskiliisler: INFO
+    org.springframework: WARN
+    org.hibernate: ERROR
+    org.apache.tomcat: WARN
+  pattern:
+    console: "%d{HH:mm:ss} %-5level %logger{20} - %msg%n"
 
-jwt:
-  secret: verysecretdevstring
-  expiration: 30m
+# App konfigürasyonu
+app:
+  login-url: ${LOGIN_URL:http://localhost:3000/login}
+
+# Server configuration
+

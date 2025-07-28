@@ -1,0 +1,94 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://dpg-d1bttqeuk2gs73a4bg60-a:5432/postgress_w2fz?sslmode=require
+    username: admin
+    password: IDn3KASVVe7ZtQGpCnz3pcPjwDn0mXUD
+    hikari:
+      # Neon PostgreSQL için optimize edilmiş ayarlar
+      maximum-pool-size: 10          # Production için daha yüksek
+      minimum-idle: 2                # En az 2 idle connection
+      connection-timeout: 30000      # 30 saniye connection timeout
+      idle-timeout: 600000           # 10 dakika idle timeout
+      max-lifetime: 1800000          # 30 dakika max lifetime
+      leak-detection-threshold: 60000 # 1 dakika leak detection
+      pool-name: BaskiliIslerHikariCP
+      auto-commit: true              # AutoCommit'i manual kapat
+      
+  jpa:
+    hibernate:
+      ddl-auto: update              # DDL-auto'yu update yap
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          batch_size: 25
+        order_inserts: true
+        order_updates: true
+        connection:
+          provider_disables_autocommit: false
+          auto_commit: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        id:
+          new_generator_mappings: false
+          db_structure_naming_strategy: legacy
+        default_schema: public
+        hbm2ddl:
+          auto: update
+        
+  # Actuator minimal
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health
+    endpoint:
+      health:
+        show-details: never
+
+# SpringDoc/Swagger Production Config
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operationsSorter: alpha
+    tagsSorter: alpha
+    displayRequestDuration: true
+  show-actuator: false
+
+# App Configuration
+app:
+  base-url: ""
+
+# JWT Configuration - Hardcoded values
+jwt:
+  secret: myVerySecureJwtSecretKey123456789012345678901234567890
+  expiration: 24H
+
+# Minimal Logging
+logging:
+  level:
+    root: WARN
+    com.baskiliisler: INFO
+    org.springframework: WARN
+    org.hibernate: ERROR
+    org.apache.tomcat: WARN
+  pattern:
+    console: "%d{HH:mm:ss} %-5level %logger{20} - %msg%n"
+
+# Server configuration
+server:
+  port: 8088
+  error:
+    include-message: never
+    include-binding-errors: never
+  tomcat:
+    threads:
+      max: 50
+      min-spare: 5 

@@ -1,5 +1,8 @@
 package com.baskiliisler.backend.common;
 
 public enum Role {
-    ADMIN, REP, FAB
+    SUPER_ADMIN,    
+    DEALER_ADMIN,    
+    DEALER_USER,    
+    FACTORY_USER
 }

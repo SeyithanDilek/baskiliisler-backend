@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: baskili-isler-backend
+    env: docker
+    image:
+      url: docker.io/seight0/baskili-isler-backend:v47-fixed-tests
+    healthCheckPath: "/actuator/health"
+    # Resource limits - Supabase için optimize edilmiş
+    plan: starter  # Render'ın en küçük planı
+    envVars:
+      - key: DATABASE_URL
+        value: jdbc:postgresql://dpg-d1vtqu49c44c73e72pn0-a.frankfurt-postgres.render.com:5432/baskili_isler_db
+      - key: DATABASE_USERNAME
+        value: baskili_isler_db_user
+      - key: DATABASE_PASSWORD
+        value: xRieSiETi4zEHPdQEAzDdeyu4FBicdaK
+      - key: JWT_SECRET
+        value: myVerySecureJwtSecretKey123456789012345678901234567890
+      - key: JWT_EXPIRATION
+        value: 24H
+      - key: SPRING_PROFILES_ACTIVE
+        value: production
+      - key: PORT
+        value: 8088
