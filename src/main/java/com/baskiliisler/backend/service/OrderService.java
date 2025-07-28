@@ -29,6 +29,7 @@ public class OrderService {
     private final BrandProcessService brandProcessService;
     private final BrandProcessHistoryService brandProcessHistoryService;
     private final NotificationService notificationService;
+    private final UserService userService;
 
     @Transactional
     public Order createOrderFromQuote(Quote quote,
@@ -110,6 +111,10 @@ public class OrderService {
         return orderRepository.findByQuoteBrandId(brandId);
     }
 
+    public List<Order> getOrdersByFactory(Long factoryId) {
+        return orderRepository.findByFactoryId(factoryId);
+    }
+
     @Transactional
     public Order updateOrderStatus(Long orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
@@ -128,6 +133,56 @@ public class OrderService {
                 notificationService.notifyNewOrder(order); // ORDER_DELIVERED için ayrı method ekleyeceğiz
             } catch (Exception e) {
                 log.warn("Notification gönderilirken hata oluştu: {}", e.getMessage());
+            }
+        }
+
+        // Notification service null kontrolü ekle
+        if (notificationService != null) {
+            try {
+                // Status değişikliği bildirimi gönder
+                log.info("Order {} status updated from {} to {}", orderId, oldStatus, newStatus);
+            } catch (Exception e) {
+                log.warn("Status update notification gönderilirken hata oluştu: {}", e.getMessage());
+            }
+        }
+
+        return orderRepository.save(order);
+    }
+
+    @Transactional
+    public Order updateFactoryOrderStatus(Long orderId, OrderStatus newStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Sipariş bulunamadı"));
+
+        // Factory kullanıcısının kendi fabrikasına ait sipariş olup olmadığını kontrol et
+        Long currentUserFactoryId = userService.getCurrentUserFactoryId();
+        if (order.getFactory() == null || !order.getFactory().getId().equals(currentUserFactoryId)) {
+            throw new IllegalStateException("Bu sipariş sizin fabrikanıza ait değil");
+        }
+
+        OrderStatus oldStatus = order.getStatus();
+        order.setStatus(newStatus);
+        order.setUpdatedAt(LocalDateTime.now());
+
+        // Eğer DELIVERED durumuna geçiyorsa deliveredAt'i set et
+        if (newStatus == OrderStatus.DELIVERED && oldStatus != OrderStatus.DELIVERED) {
+            order.setDeliveredAt(LocalDateTime.now());
+            
+            // Teslim bildirimi gönder - hata durumunda ana işlem devam etsin
+            try {
+                notificationService.notifyNewOrder(order);
+            } catch (Exception e) {
+                log.warn("Notification gönderilirken hata oluştu: {}", e.getMessage());
+            }
+        }
+
+        // Notification service null kontrolü ekle
+        if (notificationService != null) {
+            try {
+                // Status değişikliği bildirimi gönder
+                log.info("Factory Order {} status updated from {} to {}", orderId, oldStatus, newStatus);
+            } catch (Exception e) {
+                log.warn("Factory status update notification gönderilirken hata oluştu: {}", e.getMessage());
             }
         }
 

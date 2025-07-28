@@ -98,9 +98,32 @@ public class UserService implements UserDetailsService {
         
         // Kendi bilgilerini güncellerken role değiştiremez
         UserUpdateDto safeDto = new UserUpdateDto(dto.name(), dto.email(), dto.phoneNumber(), user.getRole());
+        
         UserMapper.updateUserFromDto(user, safeDto);
         User savedUser = userRepository.save(user);
         return UserMapper.toResponseDto(savedUser);
+    }
+
+    public Long getCurrentUserFactoryId() {
+        User currentUser = getCurrentUser();
+        if (currentUser.getRole() != Role.FACTORY_USER) {
+            throw new IllegalStateException("Bu işlem sadece FACTORY_USER rolü için geçerlidir");
+        }
+        // Factory kullanıcısının email'inden fabrika ID'sini çıkar (ör: factory-5@fabrika.com → 5)
+        String email = currentUser.getEmail();
+        if (!email.contains("@")) {
+            throw new IllegalStateException("Geçersiz factory kullanıcı email formatı");
+        }
+        // Örnek: factory-5@fabrika.com → 5
+        String localPart = email.substring(0, email.indexOf("@"));
+        if (!localPart.startsWith("factory-")) {
+            throw new IllegalStateException("Geçersiz factory kullanıcı email formatı");
+        }
+        try {
+            return Long.parseLong(localPart.replace("factory-", ""));
+        } catch (NumberFormatException e) {
+            throw new IllegalStateException("Factory ID çözümlenemedi");
+        }
     }
 
     @Transactional

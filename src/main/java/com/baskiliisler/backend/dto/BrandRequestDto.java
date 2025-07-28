@@ -16,5 +16,7 @@ public record BrandRequestDto(
         @NotBlank(message = "Telefon numarası boş olamaz")
         String contactPhone,
 
+        String taxNumber,                           // vergi numarası (opsiyonel)
+
         String logoUrl                              // marka logosu URL'i (opsiyonel)
 ) {}

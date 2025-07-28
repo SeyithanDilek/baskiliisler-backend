@@ -38,17 +38,8 @@ public class SecurityConfig {
                             response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN);
                         }))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/auth/**",
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/api-docs/**",
-                                "/actuator/health").permitAll()
-                        .requestMatchers(
-                                "/brands/**").hasAnyRole("ADMIN", "REP")
-                        .anyRequest().authenticated())
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                                        .anyRequest().permitAll());
+        // .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

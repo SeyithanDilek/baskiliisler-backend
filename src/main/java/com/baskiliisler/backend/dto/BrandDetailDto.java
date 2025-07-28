@@ -6,5 +6,6 @@ public record BrandDetailDto(      Long id,
                                    String name,
                                    String contactEmail,
                                    String contactPhone,
+                                   String taxNumber,
                                    ProcessStatus status
 ) {}

@@ -53,6 +53,7 @@ class BrandControllerTest {
                 "Test Brand",
                 "contact@test.com",
                 "1234567890",
+                "1234567890", // taxNumber
                 "https://example.com/logo.png"
         );
 
@@ -115,6 +116,7 @@ class BrandControllerTest {
                 "Test Brand",
                 "contact@test.com",
                 "1234567890",
+                "1234567890", // taxNumber
                 ProcessStatus.INIT
         );
 
@@ -139,6 +141,7 @@ class BrandControllerTest {
                 "Updated Brand",
                 "updated@test.com",
                 "9876543210",
+                "9876543210", // taxNumber
                 "https://example.com/updated-logo.png"
         );
 
@@ -147,6 +150,7 @@ class BrandControllerTest {
                 request.name(),
                 request.contactEmail(),
                 request.contactPhone(),
+                request.taxNumber(),
                 ProcessStatus.INIT
         );
 

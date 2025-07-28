@@ -67,6 +67,7 @@ class BrandServiceTest {
                 "Test Brand",
                 "contact@test.com",
                 "1234567890",
+                "1234567890", // taxNumber
                 "https://example.com/logo.png"
         );
 
@@ -158,6 +159,7 @@ class BrandServiceTest {
                     "Test Brand",
                     "invalid-email",
                     "1234567890",
+                    "1234567890", // taxNumber
                     "https://example.com/logo.png"
             );
 
@@ -253,6 +255,7 @@ class BrandServiceTest {
                     "Updated Brand",
                     "updated@test.com",
                     "9876543210",
+                    "9876543210", // taxNumber
                     "https://example.com/updated-logo.png"
             );
 
@@ -277,7 +280,7 @@ class BrandServiceTest {
             // given
             Long brandId = 1L;
             String existingName = "Existing Brand";
-            BrandUpdateDto updateDto = new BrandUpdateDto(existingName, null, null, null);
+            BrandUpdateDto updateDto = new BrandUpdateDto(existingName, null, null, null, null);
             Brand existingBrand = Brand.builder().name(existingName).build();
 
             when(brandRepository.findById(brandId)).thenReturn(Optional.of(testBrand));
@@ -298,6 +301,7 @@ class BrandServiceTest {
                     "Updated Brand",
                     "invalid-email",
                     "9876543210",
+                    "9876543210", // taxNumber
                     "https://example.com/logo.png"
             );
 

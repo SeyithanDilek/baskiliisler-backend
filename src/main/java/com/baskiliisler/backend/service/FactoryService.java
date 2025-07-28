@@ -26,6 +26,11 @@ public class FactoryService {
                 .orElseThrow(() -> new IllegalArgumentException("Factory not found"));
     }
 
+    public Factory getFactoryByName(String factoryName) {
+        return factoryRepository.findByName(factoryName)
+                .orElseThrow(() -> new IllegalArgumentException("Factory not found with name: " + factoryName));
+    }
+
     @Transactional
     public Factory create(FactoryRequestDto dto) {
         // 1. Önce kullanıcı oluşturmayı dene (eğer hata varsa hiçbir şey kaydedilmez)

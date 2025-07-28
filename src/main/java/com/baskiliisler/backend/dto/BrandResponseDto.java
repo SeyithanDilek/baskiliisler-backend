@@ -5,5 +5,6 @@ public record BrandResponseDto(
         String name,
         String contactEmail,
         String contactPhone,
+        String taxNumber,
         String logoUrl
 ) {}

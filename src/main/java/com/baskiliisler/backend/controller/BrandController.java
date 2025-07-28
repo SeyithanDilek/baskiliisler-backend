@@ -64,7 +64,7 @@ public class BrandController {
                                                        @RequestParam("file") MultipartFile file) {
         try {
             String logoUrl = cloudinaryService.uploadImage(file);
-            BrandUpdateDto updateDto = new BrandUpdateDto(null, null, null, logoUrl);
+            BrandUpdateDto updateDto = new BrandUpdateDto(null, null, null, null, logoUrl);
             brandService.updateBrand(id, updateDto);
             Brand brand = brandService.getBrandById(id);
             return ResponseEntity.ok(BrandMapper.toDto(brand));

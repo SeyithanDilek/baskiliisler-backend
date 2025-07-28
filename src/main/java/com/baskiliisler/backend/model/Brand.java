@@ -29,6 +29,9 @@ public class Brand {
     @Column(name = "contact_email")
     private String contactEmail;
 
+    @Column(name = "tax_number")
+    private String taxNumber;                  // vergi numarası (zorunlu değil)
+
     @ManyToOne
     @JoinColumn(name = "assigned_user_id")
     private User assignedUser;

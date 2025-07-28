@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface FactoryRepository extends JpaRepository<Factory, Long> {
     List<Factory> findByActiveTrue();
+    
+    java.util.Optional<Factory> findByName(String name);
 }
