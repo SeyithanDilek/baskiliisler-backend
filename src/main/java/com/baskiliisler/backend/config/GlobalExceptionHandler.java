@@ -100,6 +100,8 @@ public class GlobalExceptionHandler {
     @Hidden // Bu Swagger'da görünmesin
     public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
         log.error("Beklenmeyen hata: ", ex);
+        log.error("Hata detayı: {}", ex.getMessage());
+        log.error("Stack trace: ", ex);
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
