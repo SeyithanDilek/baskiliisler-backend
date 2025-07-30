@@ -1,5 +1,6 @@
 package com.baskiliisler.backend.repository;
 
+import com.baskiliisler.backend.model.Dealer;
 import com.baskiliisler.backend.model.Product;
 import com.baskiliisler.backend.type.Unit;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,9 +29,17 @@ class ProductRepositoryTest {
 
     private Product activeProduct;
     private Product inactiveProduct;
+    private Dealer testDealer;
 
     @BeforeEach
     void setUp() {
+        testDealer = Dealer.builder()
+                .name("Test Dealer")
+                .active(true)
+                .build();
+        entityManager.persist(testDealer);
+        entityManager.flush();
+
         activeProduct = Product.builder()
                 .name("Orta Karton Bardak")
                 .description("Orta boy karton bardak açıklaması")
@@ -38,6 +47,7 @@ class ProductRepositoryTest {
                 .unitPrice(new BigDecimal("2.50"))
                 .taxRate(new BigDecimal("18.00"))
                 .active(true)
+                .dealer(testDealer)
                 .build();
 
         inactiveProduct = Product.builder()
@@ -47,6 +57,7 @@ class ProductRepositoryTest {
                 .unitPrice(new BigDecimal("3.50"))
                 .taxRate(new BigDecimal("18.00"))
                 .active(false)
+                .dealer(testDealer)
                 .build();
 
         entityManager.persistAndFlush(activeProduct);

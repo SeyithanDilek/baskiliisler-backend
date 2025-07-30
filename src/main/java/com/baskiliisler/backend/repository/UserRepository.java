@@ -1,6 +1,7 @@
 package com.baskiliisler.backend.repository;
 
 import com.baskiliisler.backend.model.User;
+import com.baskiliisler.backend.model.Dealer;
 import com.baskiliisler.backend.common.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -13,4 +14,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
     List<User> findByRole(Role role);
+    List<User> findByDealer(Dealer dealer);
+    long countByDealer(Dealer dealer);
 }

@@ -7,11 +7,14 @@ import com.baskiliisler.backend.mapper.BrandMapper;
 import com.baskiliisler.backend.model.Brand;
 import com.baskiliisler.backend.model.BrandProcess;
 import com.baskiliisler.backend.model.User;
+import com.baskiliisler.backend.model.Dealer;
 import com.baskiliisler.backend.repository.BrandRepository;
 import com.baskiliisler.backend.repository.UserRepository;
+import com.baskiliisler.backend.repository.DealerRepository;
 import com.baskiliisler.backend.type.ProcessStatus;
 import com.baskiliisler.backend.notification.service.NotificationService;
 import com.baskiliisler.backend.config.SecurityUtil;
+import com.baskiliisler.backend.common.Role;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Validation;
@@ -29,6 +32,7 @@ public class BrandService {
 
     private final BrandRepository brandRepository;
     private final UserRepository userRepository;
+    private final DealerRepository dealerRepository;
     private final BrandProcessService brandProcessService;
     private final BrandProcessHistoryService brandProcessHistoryService;
     private final NotificationService notificationService;
@@ -53,6 +57,24 @@ public class BrandService {
 
         Brand brand = BrandMapper.toEntity(dto);
         brand.setAssignedUser(user);
+        
+        // Dealer ataması
+        if (user.getRole() == Role.SUPER_ADMIN) {
+            // SUPER_ADMIN için dealer seçimi gerekli
+            if (dto.dealerId() == null) {
+                throw new IllegalArgumentException("SUPER_ADMIN için dealer seçimi zorunludur");
+            }
+            Dealer dealer = dealerRepository.findById(dto.dealerId())
+                    .orElseThrow(() -> new EntityNotFoundException("Dealer bulunamadı"));
+            brand.setDealer(dealer);
+        } else {
+            // Diğer roller için kullanıcının dealer'ı otomatik atanır
+            if (user.getDealer() == null) {
+                throw new IllegalStateException("Kullanıcının atanmış bir dealer'ı yok");
+            }
+            brand.setDealer(user.getDealer());
+        }
+        
         brand = brandRepository.save(brand);
         
         BrandProcess process = brandProcessService.createBrandProcess(brand);
@@ -74,7 +96,19 @@ public class BrandService {
     }
 
     public List<Brand> getAllBrands() {
-        return brandRepository.findAll();
+        User currentUser = getCurrentUser();
+        
+        // SUPER_ADMIN tüm markaları görebilir
+        if (currentUser.getRole() == Role.SUPER_ADMIN) {
+            return brandRepository.findAll();
+        }
+        
+        // Diğer roller sadece kendi dealer'ının markalarını görebilir
+        if (currentUser.getDealer() == null) {
+            throw new IllegalStateException("Kullanıcının atanmış bir dealer'ı yok");
+        }
+        
+        return brandRepository.findByDealer(currentUser.getDealer());
     }
 
     public BrandDetailDto findById(Long id) {
@@ -145,5 +179,10 @@ public class BrandService {
         // 3. Son olarak Brand'i sil
         brandRepository.deleteById(id);
         log.info("Brand başarıyla silindi: {} (ID: {})", brand.getName(), id);
+    }
+
+    private User getCurrentUser() {
+        return userRepository.findById(SecurityUtil.currentUserId())
+                .orElseThrow(() -> new EntityNotFoundException("Kullanıcı bulunamadı"));
     }
 }

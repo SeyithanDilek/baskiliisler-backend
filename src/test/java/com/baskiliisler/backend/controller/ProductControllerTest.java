@@ -70,7 +70,8 @@ class ProductControllerTest {
                 "Orta boy karton bardak açıklaması",
                 Unit.ADET,
                 new BigDecimal("2.50"),
-                new BigDecimal("18.00")
+                new BigDecimal("18.00"),
+                1L // dealerId
         );
 
         testProductResponseDto = new ProductResponseDto(
@@ -123,7 +124,7 @@ class ProductControllerTest {
         @DisplayName("Geçersiz verilerle ürün oluşturulmaya çalışıldığında 400 Bad Request döndürmeli")
         void givenInvalidProductData_whenCreateProduct_thenShouldReturn400() throws Exception {
             // Given
-            ProductRequestDto invalidDto = new ProductRequestDto("", "", null, null, null);
+            ProductRequestDto invalidDto = new ProductRequestDto("", "", null, null, null, null);
 
             // When & Then
             mockMvc.perform(post("/products")

@@ -38,4 +38,8 @@ public class Brand {
 
     @Column(name = "logo_url")
     private String logoUrl;                    // marka logosu URL'i
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "dealer_id")
+    private Dealer dealer;
 }

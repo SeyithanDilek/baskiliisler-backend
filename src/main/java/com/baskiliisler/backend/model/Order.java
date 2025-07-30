@@ -60,4 +60,8 @@ public class Order {
 
     @Column(name = "customer_tax_number")
     private String customerTaxNumber;                 // müşterinin vergi numarası
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "dealer_id")
+    private Dealer dealer;
 }

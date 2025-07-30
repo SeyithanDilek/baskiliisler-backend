@@ -37,4 +37,8 @@ public class Product {
     
     @Builder.Default
     private boolean active = true;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "dealer_id")
+    private Dealer dealer;
 }

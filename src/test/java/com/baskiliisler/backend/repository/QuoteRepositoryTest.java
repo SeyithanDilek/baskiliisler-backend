@@ -1,6 +1,7 @@
 package com.baskiliisler.backend.repository;
 
 import com.baskiliisler.backend.model.Brand;
+import com.baskiliisler.backend.model.Dealer;
 import com.baskiliisler.backend.model.Quote;
 import com.baskiliisler.backend.type.QuoteStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,13 +29,22 @@ class QuoteRepositoryTest {
     private QuoteRepository quoteRepository;
 
     private Brand testBrand;
+    private Dealer testDealer;
 
     @BeforeEach
     void setUp() {
+        testDealer = Dealer.builder()
+                .name("Test Dealer")
+                .active(true)
+                .build();
+        entityManager.persist(testDealer);
+        entityManager.flush();
+
         testBrand = Brand.builder()
                 .name("Test Brand")
                 .contactEmail("test@brand.com")
                 .contactPhone("1234567890")
+                .dealer(testDealer)
                 .build();
         
         entityManager.persistAndFlush(testBrand);
@@ -52,6 +62,7 @@ class QuoteRepositoryTest {
                 .currency("TRY")
                 .totalPrice(BigDecimal.valueOf(1000))
                 .items(new ArrayList<>())
+                .dealer(testDealer)
                 .build();
 
         Quote expiredQuote1 = Quote.builder()
@@ -62,6 +73,7 @@ class QuoteRepositoryTest {
                 .currency("TRY")
                 .totalPrice(BigDecimal.valueOf(2000))
                 .items(new ArrayList<>())
+                .dealer(testDealer)
                 .build();
 
         Quote expiredQuote2 = Quote.builder()
@@ -72,6 +84,7 @@ class QuoteRepositoryTest {
                 .currency("TRY")
                 .totalPrice(BigDecimal.valueOf(3000))
                 .items(new ArrayList<>())
+                .dealer(testDealer)
                 .build();
 
         Quote acceptedExpiredQuote = Quote.builder()
@@ -82,6 +95,7 @@ class QuoteRepositoryTest {
                 .currency("TRY")
                 .totalPrice(BigDecimal.valueOf(4000))
                 .items(new ArrayList<>())
+                .dealer(testDealer)
                 .build();
 
         entityManager.persist(validQuote);
@@ -119,6 +133,7 @@ class QuoteRepositoryTest {
                 .currency("TRY")
                 .totalPrice(BigDecimal.valueOf(1000))
                 .items(new ArrayList<>())
+                .dealer(testDealer)
                 .build();
 
         entityManager.persistAndFlush(validQuote);

@@ -1,10 +1,16 @@
 package com.baskiliisler.backend.service;
 
+import com.baskiliisler.backend.config.SecurityUtil;
 import com.baskiliisler.backend.dto.ProductRequestDto;
 import com.baskiliisler.backend.dto.ProductResponseDto;
 import com.baskiliisler.backend.dto.ProductUpdateDto;
+import com.baskiliisler.backend.model.Dealer;
 import com.baskiliisler.backend.model.Product;
+import com.baskiliisler.backend.model.User;
+import com.baskiliisler.backend.repository.DealerRepository;
 import com.baskiliisler.backend.repository.ProductRepository;
+import com.baskiliisler.backend.repository.UserRepository;
+import com.baskiliisler.backend.common.Role;
 import com.baskiliisler.backend.type.Unit;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
@@ -30,6 +37,12 @@ class ProductServiceTest {
 
     @Mock
     private ProductRepository productRepository;
+    
+    @Mock
+    private UserRepository userRepository;
+    
+    @Mock
+    private DealerRepository dealerRepository;
 
     @InjectMocks
     private ProductService productService;
@@ -37,9 +50,24 @@ class ProductServiceTest {
     private Product testProduct;
     private ProductRequestDto testProductRequestDto;
     private ProductUpdateDto testProductUpdateDto;
+    private User testUser;
 
     @BeforeEach
     void setUp() {
+        // Test için Dealer oluştur
+        Dealer testDealer = Dealer.builder()
+                .id(1L)
+                .name("Test Dealer")
+                .build();
+
+        testUser = User.builder()
+                .id(1L)
+                .name("Test User")
+                .email("test@example.com")
+                .role(Role.SUPER_ADMIN)
+                .dealer(testDealer)
+                .build();
+
         testProduct = Product.builder()
                 .id(1L)
                 .name("Orta Karton Bardak")
@@ -55,7 +83,8 @@ class ProductServiceTest {
                 "Orta boy karton bardak açıklaması",
                 Unit.ADET,
                 new BigDecimal("2.50"),
-                new BigDecimal("18.00")
+                new BigDecimal("18.00"),
+                1L // dealerId
         );
 
         testProductUpdateDto = new ProductUpdateDto(
@@ -77,20 +106,26 @@ class ProductServiceTest {
         void givenValidProductData_whenCreateProduct_thenShouldReturnCreatedProduct() {
             // Given
             when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+            
+            try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
+                mockedSecurityUtil.when(SecurityUtil::currentUserId).thenReturn(1L);
+                when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+                when(dealerRepository.findById(1L)).thenReturn(Optional.of(testUser.getDealer()));
 
-            // When
-            Product result = productService.createProduct(testProductRequestDto);
+                // When
+                Product result = productService.createProduct(testProductRequestDto);
 
-            // Then
-            assertThat(result).isNotNull();
-            assertThat(result.getName()).isEqualTo(testProductRequestDto.name());
-            assertThat(result.getDescription()).isEqualTo(testProductRequestDto.description());
-            assertThat(result.getUnit()).isEqualTo(testProductRequestDto.unit());
-            assertThat(result.getUnitPrice()).isEqualTo(testProductRequestDto.unitPrice());
-            assertThat(result.getTaxRate()).isEqualTo(testProductRequestDto.taxRate());
-            assertThat(result.isActive()).isTrue();
+                // Then
+                assertThat(result).isNotNull();
+                assertThat(result.getName()).isEqualTo(testProductRequestDto.name());
+                assertThat(result.getDescription()).isEqualTo(testProductRequestDto.description());
+                assertThat(result.getUnit()).isEqualTo(testProductRequestDto.unit());
+                assertThat(result.getUnitPrice()).isEqualTo(testProductRequestDto.unitPrice());
+                assertThat(result.getTaxRate()).isEqualTo(testProductRequestDto.taxRate());
+                assertThat(result.isActive()).isTrue();
 
-            verify(productRepository).save(any(Product.class));
+                verify(productRepository).save(any(Product.class));
+            }
         }
     }
 
@@ -103,16 +138,21 @@ class ProductServiceTest {
         void whenGetAllProducts_thenShouldReturnAllProducts() {
             // Given
             when(productRepository.findAll()).thenReturn(List.of(testProduct));
+            
+            try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
+                mockedSecurityUtil.when(SecurityUtil::currentUserId).thenReturn(1L);
+                when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
-            // When
-            List<Product> result = productService.getAllProducts();
+                // When
+                List<Product> result = productService.getAllProducts();
 
-            // Then
-            assertThat(result).isNotEmpty();
-            assertThat(result).hasSize(1);
-            assertThat(result.get(0).getName()).isEqualTo(testProduct.getName());
+                // Then
+                assertThat(result).isNotEmpty();
+                assertThat(result).hasSize(1);
+                assertThat(result.get(0).getName()).isEqualTo(testProduct.getName());
 
-            verify(productRepository).findAll();
+                verify(productRepository).findAll();
+            }
         }
 
         @Test

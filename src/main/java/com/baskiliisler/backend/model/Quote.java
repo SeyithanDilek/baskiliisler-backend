@@ -31,6 +31,10 @@ public class Quote {
     @Builder.Default
     private List<QuoteItem> items = new ArrayList<>(); // ürün satırları  // yeni
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "dealer_id")
+    private Dealer dealer;
+
     /* ------------ Temel Alanlar ------------ */
     @CreationTimestamp
     @Column(name = "created_at")

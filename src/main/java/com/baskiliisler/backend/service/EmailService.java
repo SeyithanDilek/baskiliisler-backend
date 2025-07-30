@@ -32,6 +32,21 @@ public class EmailService {
         }
     }
     
+    public void sendDealerAdminWelcomeEmail(String to, String adminName, String dealerName, String password) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject("Dealer Admin Hesabınız Oluşturuldu - Baskılı İşler Sistemi");
+            message.setText(createDealerAdminWelcomeEmailContent(adminName, dealerName, password));
+            
+            mailSender.send(message);
+            log.info("Dealer admin hoşgeldiniz emaili gönderildi: {}", to);
+        } catch (Exception e) {
+            log.error("Dealer admin email gönderilirken hata oluştu: {}", e.getMessage());
+            throw new RuntimeException("Email gönderilemedi", e);
+        }
+    }
+    
     private String createWelcomeEmailContent(String name, String password) {
         return String.format("""
             Merhaba %s,
@@ -49,5 +64,30 @@ public class EmailService {
             İyi çalışmalar,
             Baskılı İşler Ekibi
             """, name, name, password, loginUrl);
+    }
+    
+    private String createDealerAdminWelcomeEmailContent(String adminName, String dealerName, String password) {
+        return String.format("""
+            Merhaba %s,
+            
+            %s bayisi için admin hesabınız başarıyla oluşturuldu!
+            
+            Giriş bilgileriniz:
+            Email: %s
+            Şifre: %s
+            
+            Sisteme giriş yapmak için: %s
+            
+            Bu hesap ile:
+            - Bayi bilgilerinizi yönetebilirsiniz
+            - Ürün kataloğunuzu oluşturabilirsiniz
+            - Markalarınızı yönetebilirsiniz
+            - Teklif ve siparişlerinizi takip edebilirsiniz
+            
+            Güvenliğiniz için lütfen ilk girişinizden sonra şifrenizi değiştirin.
+            
+            İyi çalışmalar,
+            Baskılı İşler Ekibi
+            """, adminName, dealerName, adminName, password, loginUrl);
     }
 } 

@@ -2,6 +2,7 @@ package com.baskiliisler.backend.repository;
 
 import com.baskiliisler.backend.model.Brand;
 import com.baskiliisler.backend.model.BrandProcess;
+import com.baskiliisler.backend.model.Dealer;
 import com.baskiliisler.backend.type.ProcessStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,11 +24,20 @@ class BrandProcessRepositoryTest {
 
     private Brand testBrand;
     private BrandProcess testBrandProcess;
+    private Dealer testDealer;
 
     @BeforeEach
     void setUp() {
+        testDealer = Dealer.builder()
+                .name("Test Dealer")
+                .active(true)
+                .build();
+        entityManager.persist(testDealer);
+        entityManager.flush();
+
         testBrand = Brand.builder()
                 .name("Test Brand")
+                .dealer(testDealer)
                 .build();
         entityManager.persist(testBrand);
 

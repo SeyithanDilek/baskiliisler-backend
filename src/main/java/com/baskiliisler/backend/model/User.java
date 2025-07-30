@@ -33,4 +33,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role;
+
+    /** Kullanıcı yalnızca bir bayiye (dealer) bağlı olabilir. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dealer_id")  // NULL ise ⇒ SUPER_ADMIN
+    private Dealer dealer;
 }

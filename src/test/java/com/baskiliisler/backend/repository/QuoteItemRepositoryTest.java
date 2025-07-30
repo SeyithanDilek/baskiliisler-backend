@@ -32,10 +32,19 @@ class QuoteItemRepositoryTest {
     private QuoteItem testQuoteItem;
     private Quote testQuote;
     private Product testProduct;
+    private Dealer testDealer;
 
     @BeforeEach
     void setUp() {
+        testDealer = Dealer.builder()
+                .name("Test Dealer")
+                .active(true)
+                .build();
+        entityManager.persist(testDealer);
+        entityManager.flush();
+
         Brand testBrand = Brand.builder()
+                .dealer(testDealer)
                 .name("Test Brand")
                 .contactEmail("test@brand.com")
                 .contactPhone("1234567890")
@@ -51,6 +60,7 @@ class QuoteItemRepositoryTest {
                 .currency("TRY")
                 .totalPrice(BigDecimal.valueOf(1000))
                 .items(new ArrayList<>())
+                .dealer(testDealer)
                 .build();
         
         entityManager.persist(testQuote);
@@ -62,6 +72,7 @@ class QuoteItemRepositoryTest {
                 .unitPrice(BigDecimal.valueOf(100))
                 .taxRate(BigDecimal.valueOf(18.00))
                 .active(true)
+                .dealer(testDealer)
                 .build();
         
         entityManager.persist(testProduct);
@@ -113,6 +124,7 @@ class QuoteItemRepositoryTest {
                 .unitPrice(BigDecimal.valueOf(200))
                 .taxRate(BigDecimal.valueOf(18.00))
                 .active(true)
+                .dealer(testDealer)
                 .build();
         
         entityManager.persist(product2);
@@ -149,6 +161,7 @@ class QuoteItemRepositoryTest {
                 .unitPrice(BigDecimal.valueOf(50))
                 .taxRate(BigDecimal.valueOf(18.00))
                 .active(true)
+                .dealer(testDealer)
                 .build();
         
         entityManager.persist(newProduct);

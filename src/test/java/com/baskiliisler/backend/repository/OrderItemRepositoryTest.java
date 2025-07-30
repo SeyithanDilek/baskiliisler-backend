@@ -34,13 +34,22 @@ class OrderItemRepositoryTest {
     private OrderItem testOrderItem;
     private Order testOrder;
     private Product testProduct;
+    private Dealer testDealer;
 
     @BeforeEach
     void setUp() {
+        testDealer = Dealer.builder()
+                .name("Test Dealer")
+                .active(true)
+                .build();
+        entityManager.persist(testDealer);
+        entityManager.flush();
+
         Brand testBrand = Brand.builder()
                 .name("Test Brand")
                 .contactEmail("test@brand.com")
                 .contactPhone("1234567890")
+                .dealer(testDealer)
                 .build();
         
         entityManager.persist(testBrand);
@@ -53,6 +62,7 @@ class OrderItemRepositoryTest {
                 .currency("TRY")
                 .totalPrice(BigDecimal.valueOf(1000))
                 .items(new ArrayList<>())
+                .dealer(testDealer)
                 .build();
         
         entityManager.persist(testQuote);
@@ -64,6 +74,7 @@ class OrderItemRepositoryTest {
                 .deadline(LocalDate.now().plusDays(30))
                 .totalPrice(BigDecimal.valueOf(1000))
                 .status(OrderStatus.PENDING)
+                .dealer(testDealer)
                 .build();
         
         entityManager.persist(testOrder);
@@ -75,6 +86,7 @@ class OrderItemRepositoryTest {
                 .unitPrice(BigDecimal.valueOf(100))
                 .taxRate(BigDecimal.valueOf(18.00))
                 .active(true)
+                .dealer(testDealer)
                 .build();
 
         entityManager.persist(testProduct);
@@ -140,6 +152,7 @@ class OrderItemRepositoryTest {
                 .unitPrice(BigDecimal.valueOf(50))
                 .taxRate(BigDecimal.valueOf(18.00))
                 .active(true)
+                .dealer(testDealer)
                 .build();
         
         entityManager.persist(newProduct);

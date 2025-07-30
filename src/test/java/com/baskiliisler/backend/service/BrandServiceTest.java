@@ -3,9 +3,13 @@ package com.baskiliisler.backend.service;
 import com.baskiliisler.backend.dto.BrandDetailDto;
 import com.baskiliisler.backend.dto.BrandRequestDto;
 import com.baskiliisler.backend.dto.BrandUpdateDto;
+import com.baskiliisler.backend.config.SecurityUtil;
+import com.baskiliisler.backend.common.Role;
 import com.baskiliisler.backend.model.Brand;
 import com.baskiliisler.backend.model.BrandProcess;
+import com.baskiliisler.backend.model.Dealer;
 import com.baskiliisler.backend.model.User;
+import com.baskiliisler.backend.repository.DealerRepository;
 import com.baskiliisler.backend.repository.BrandRepository;
 import com.baskiliisler.backend.repository.UserRepository;
 import com.baskiliisler.backend.type.ProcessStatus;
@@ -17,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -38,6 +43,9 @@ class BrandServiceTest {
 
     @Mock
     private UserRepository userRepository;
+    
+    @Mock
+    private DealerRepository dealerRepository;
 
     @Mock
     private BrandProcessService brandProcessService;
@@ -63,18 +71,27 @@ class BrandServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Test için Dealer oluştur
+        Dealer testDealer = Dealer.builder()
+                .id(1L)
+                .name("Test Dealer")
+                .build();
+
         testBrandRequest = new BrandRequestDto(
                 "Test Brand",
                 "contact@test.com",
                 "1234567890",
                 "1234567890", // taxNumber
-                "https://example.com/logo.png"
+                "https://example.com/logo.png",
+                1L // dealerId
         );
 
         testUser = User.builder()
                 .id(1L)
                 .name("testuser")
                 .email("test@example.com")
+                .role(Role.SUPER_ADMIN)
+                .dealer(testDealer)
                 .build();
 
         testBrand = Brand.builder()
@@ -112,13 +129,14 @@ class BrandServiceTest {
                     anyString()
             );
 
-            // Mock SecurityContext
-            when(securityContext.getAuthentication()).thenReturn(authentication);
-            when(authentication.getPrincipal()).thenReturn(1L);
-            SecurityContextHolder.setContext(securityContext);
+            // Mock SecurityUtil
+            try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
+                mockedSecurityUtil.when(SecurityUtil::currentUserId).thenReturn(1L);
+                when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+                when(dealerRepository.findById(1L)).thenReturn(Optional.of(testUser.getDealer()));
 
-            // when
-            Brand savedBrand = brandService.createBrand(testBrandRequest);
+                // when
+                Brand savedBrand = brandService.createBrand(testBrandRequest);
 
             // then
             assertThat(savedBrand).isNotNull();
@@ -134,6 +152,7 @@ class BrandServiceTest {
                     isNull(),
                     anyString()
             );
+            }
         }
 
         @Test
@@ -160,7 +179,8 @@ class BrandServiceTest {
                     "invalid-email",
                     "1234567890",
                     "1234567890", // taxNumber
-                    "https://example.com/logo.png"
+                    "https://example.com/logo.png",
+                    1L // dealerId
             );
 
             // when & then
@@ -180,15 +200,20 @@ class BrandServiceTest {
             // given
             List<Brand> brands = List.of(testBrand);
             when(brandRepository.findAll()).thenReturn(brands);
+            
+            try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
+                mockedSecurityUtil.when(SecurityUtil::currentUserId).thenReturn(1L);
+                when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
-            // when
-            List<Brand> result = brandService.getAllBrands();
+                // when
+                List<Brand> result = brandService.getAllBrands();
 
-            // then
-            assertThat(result)
-                    .isNotEmpty()
-                    .hasSize(1)
-                    .contains(testBrand);
+                // then
+                assertThat(result)
+                        .isNotEmpty()
+                        .hasSize(1)
+                        .contains(testBrand);
+            }
         }
 
         @Test
@@ -196,12 +221,19 @@ class BrandServiceTest {
         void whenNoBrands_thenReturnEmptyList() {
             // given
             when(brandRepository.findAll()).thenReturn(List.of());
+            
+            try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
+                mockedSecurityUtil.when(SecurityUtil::currentUserId).thenReturn(1L);
+                when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
-            // when
-            List<Brand> result = brandService.getAllBrands();
+                // when
+                List<Brand> result = brandService.getAllBrands();
 
-            // then
-            assertThat(result).isEmpty();
+                // then
+                assertThat(result).isEmpty();
+                
+                verify(brandRepository).findAll();
+            }
         }
     }
 

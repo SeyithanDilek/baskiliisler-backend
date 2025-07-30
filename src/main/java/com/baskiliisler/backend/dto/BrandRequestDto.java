@@ -18,5 +18,7 @@ public record BrandRequestDto(
 
         String taxNumber,                           // vergi numarası (opsiyonel)
 
-        String logoUrl                              // marka logosu URL'i (opsiyonel)
+        String logoUrl,                             // marka logosu URL'i (opsiyonel)
+        
+        Long dealerId                               // dealer ID (SUPER_ADMIN için zorunlu)
 ) {}

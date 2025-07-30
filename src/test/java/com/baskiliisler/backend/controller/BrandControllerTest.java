@@ -54,7 +54,8 @@ class BrandControllerTest {
                 "contact@test.com",
                 "1234567890",
                 "1234567890", // taxNumber
-                "https://example.com/logo.png"
+                "https://example.com/logo.png",
+                1L // dealerId
         );
 
         Brand createdBrand = Brand.builder()

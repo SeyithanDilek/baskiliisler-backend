@@ -26,5 +26,7 @@ public record ProductRequestDto(
 
         @NotNull(message = "KDV oranı boş olamaz")
         @Positive(message = "KDV oranı pozitif olmalıdır")
-        BigDecimal taxRate
+        BigDecimal taxRate,
+        
+        Long dealerId                               // dealer ID (SUPER_ADMIN için zorunlu)
 ) {} 

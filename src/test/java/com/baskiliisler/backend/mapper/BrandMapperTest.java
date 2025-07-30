@@ -22,7 +22,8 @@ class BrandMapperTest {
                 "test@brand.com",
                 "1234567890",
                 "1234567890", // taxNumber
-                "https://example.com/logo.png"
+                "https://example.com/logo.png",
+                1L // dealerId
         );
 
         // when
@@ -206,7 +207,8 @@ class BrandMapperTest {
                 null, // Email null
                 null, // Phone null
                 null, // Tax number null
-                null  // Logo URL null
+                null, // Logo URL null
+                null  // DealerId null
         );
 
         // when
