@@ -66,7 +66,9 @@ class UserControllerTest {
                 "Test User",
                 "test@example.com",
                 "+90 555 123 45 67",
-                Role.SUPER_ADMIN
+                Role.SUPER_ADMIN,
+                1L,
+                "Test Dealer"
         );
 
         testUserUpdateDto = new UserUpdateDto(

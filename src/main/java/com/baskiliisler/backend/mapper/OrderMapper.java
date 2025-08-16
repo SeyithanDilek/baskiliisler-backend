@@ -29,10 +29,25 @@ public class OrderMapper {
         OrderResponseDto.BrandInfo brandInfo = null;
         if (o.getQuote() != null && o.getQuote().getBrand() != null) {
             var brand = o.getQuote().getBrand();
+            
+            // AssignedUser bilgisi
+            OrderResponseDto.AssignedUserInfo assignedUser = null;
+            if (brand.getAssignedUser() != null) {
+                var user = brand.getAssignedUser();
+                assignedUser = new OrderResponseDto.AssignedUserInfo(
+                        user.getId(),
+                        user.getName(),
+                        user.getEmail(),
+                        user.getPhoneNumber()
+                );
+            }
+            
             brandInfo = new OrderResponseDto.BrandInfo(
                     brand.getId(),
                     brand.getName(),
-                    brand.getLogoUrl());
+                    brand.getLogoUrl(),
+                    brand.getContactPhone(),
+                    assignedUser);
         }
 
         // Factory bilgisi
@@ -40,7 +55,9 @@ public class OrderMapper {
         if (o.getFactory() != null) {
             factoryInfo = new OrderResponseDto.FactoryInfo(
                     o.getFactory().getId(),
-                    o.getFactory().getName());
+                    o.getFactory().getName(),
+                    o.getFactory().getPhoneNumber(),
+                    o.getFactory().getAddress());
         }
 
         return new OrderResponseDto(
@@ -55,7 +72,8 @@ public class OrderMapper {
                 itemDtos,
                 o.getCustomerLogoUrl(),
                 o.getDescription(),
-                o.getCustomerTaxNumber());
+                o.getCustomerTaxNumber(),
+                o.getImageUrls());
     }
 
 }

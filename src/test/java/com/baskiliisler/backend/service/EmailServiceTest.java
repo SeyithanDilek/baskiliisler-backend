@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,6 +25,7 @@ class EmailServiceTest {
     void setUp() {
         emailService = new EmailService(mailSender);
         ReflectionTestUtils.setField(emailService, "loginUrl", "http://localhost:3000/login");
+        ReflectionTestUtils.setField(emailService, "resetPasswordUrl", "http://localhost:3000/reset-password");
     }
 
     @Test
@@ -38,7 +39,7 @@ class EmailServiceTest {
         assertDoesNotThrow(() -> emailService.sendWelcomeEmail(to, name, password));
 
         // Then
-        verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
+        verify(mailSender, times(1)).send(any(MimeMessagePreparator.class));
     }
 
     @Test
@@ -52,7 +53,7 @@ class EmailServiceTest {
         emailService.sendWelcomeEmail(to, name, password);
 
         // Then
-        verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
+        verify(mailSender, times(1)).send(any(MimeMessagePreparator.class));
     }
 
     @Test
@@ -63,7 +64,7 @@ class EmailServiceTest {
         String password = "TestPass123!";
         
         doThrow(new RuntimeException("Mail sending failed"))
-                .when(mailSender).send(any(SimpleMailMessage.class));
+                .when(mailSender).send(any(MimeMessagePreparator.class));
 
         // When & Then
         assertThrows(RuntimeException.class, () -> 
@@ -81,6 +82,63 @@ class EmailServiceTest {
         emailService.sendWelcomeEmail(to, name, password);
 
         // Then
-        verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
+        verify(mailSender, times(1)).send(any(MimeMessagePreparator.class));
+    }
+
+    @Test
+    void sendPasswordResetEmail_ShouldSendEmailSuccessfully() {
+        // Given
+        String to = "test@example.com";
+        String name = "Test User";
+        String token = "550e8400-e29b-41d4-a716-446655440000";
+
+        // When
+        assertDoesNotThrow(() -> emailService.sendPasswordResetEmail(to, name, token));
+
+        // Then
+        verify(mailSender, times(1)).send(any(MimeMessagePreparator.class));
+    }
+
+    @Test
+    void sendPasswordResetEmail_ShouldSetCorrectEmailProperties() {
+        // Given
+        String to = "test@example.com";
+        String name = "Test User";
+        String token = "550e8400-e29b-41d4-a716-446655440000";
+
+        // When
+        emailService.sendPasswordResetEmail(to, name, token);
+
+        // Then
+        verify(mailSender, times(1)).send(any(MimeMessagePreparator.class));
+    }
+
+    @Test
+    void sendPasswordResetEmail_ShouldThrowExceptionWhenMailSenderFails() {
+        // Given
+        String to = "test@example.com";
+        String name = "Test User";
+        String token = "550e8400-e29b-41d4-a716-446655440000";
+        
+        doThrow(new RuntimeException("Mail sending failed"))
+                .when(mailSender).send(any(MimeMessagePreparator.class));
+
+        // When & Then
+        assertThrows(RuntimeException.class, () -> 
+                emailService.sendPasswordResetEmail(to, name, token));
+    }
+
+    @Test
+    void sendPasswordResetEmail_ShouldIncludeAllRequiredInformationInEmailContent() {
+        // Given
+        String to = "test@example.com";
+        String name = "Test User";
+        String token = "550e8400-e29b-41d4-a716-446655440000";
+
+        // When
+        emailService.sendPasswordResetEmail(to, name, token);
+
+        // Then
+        verify(mailSender, times(1)).send(any(MimeMessagePreparator.class));
     }
 } 

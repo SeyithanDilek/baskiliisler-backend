@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "dealers")
 @Data
@@ -29,6 +31,15 @@ public class Dealer {
     @Column(name = "tax_number", length = 50)
     private String taxNumber;
 
+    @Column(name = "updated_at", nullable = false, updatable = false)
+    private LocalDateTime updatedAt;
+
     @Builder.Default
     private boolean active = true;
+    
+    @PrePersist
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 } 

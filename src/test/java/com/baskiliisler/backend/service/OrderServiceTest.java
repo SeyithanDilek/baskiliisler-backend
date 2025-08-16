@@ -56,6 +56,12 @@ class OrderServiceTest {
     @Mock
     private com.baskiliisler.backend.notification.service.NotificationService notificationService;
 
+    @Mock
+    private com.baskiliisler.backend.service.UserService userService;
+
+    @Mock
+    private com.baskiliisler.backend.repository.BrandRepository brandRepository;
+
     @InjectMocks
     private OrderService orderService;
 
@@ -132,6 +138,18 @@ class OrderServiceTest {
         // Tüm testler için genel stub
         when(orderRepository.save(any(Order.class))).thenReturn(testOrder);
         doNothing().when(orderItemService).assembleAndSaveOrderItems(any(Quote.class), any(Map.class), any(Order.class));
+        
+        // UserService mock setup
+        User testUser = User.builder()
+                .id(1L)
+                .name("Test User")
+                .email("test@user.com")
+                .role(com.baskiliisler.backend.common.Role.SUPER_ADMIN)
+                .build();
+        when(userService.getCurrentUser()).thenReturn(testUser);
+        
+        // BrandRepository mock setup
+        when(brandRepository.findById(1L)).thenReturn(Optional.of(testBrand));
     }
 
     @Nested
@@ -366,7 +384,7 @@ class OrderServiceTest {
                     any(BrandProcess.class), any(ProcessStatus.class), any(ProcessStatus.class), anyString());
 
             // when
-            Order result = orderService.assignFactory(orderId, factoryId, deadline);
+            Order result = orderService.assignFactory(orderId, factoryId, deadline, "Test description", List.of("https://example.com/image1.jpg"));
 
             // then
             assertThat(result.getFactory()).isEqualTo(testFactory);
@@ -401,7 +419,7 @@ class OrderServiceTest {
                     any(BrandProcess.class), any(ProcessStatus.class), any(ProcessStatus.class), anyString());
 
             // when
-            Order result = orderService.assignFactory(orderId, factoryId, null);
+            Order result = orderService.assignFactory(orderId, factoryId, null, "Test description", List.of("https://example.com/image1.jpg"));
 
             // then
             assertThat(result.getFactory()).isEqualTo(testFactory);
@@ -429,7 +447,7 @@ class OrderServiceTest {
             when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.of(inProductionOrder));
 
             // when & then
-            assertThatThrownBy(() -> orderService.assignFactory(orderId, factoryId, null))
+            assertThatThrownBy(() -> orderService.assignFactory(orderId, factoryId, null, "Test description", List.of("https://example.com/image1.jpg")))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("Sadece PENDING sipariş atanabilir");
 
@@ -446,7 +464,7 @@ class OrderServiceTest {
             when(orderRepository.findByIdForUpdate(nonExistentId)).thenReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> orderService.assignFactory(nonExistentId, factoryId, null))
+            assertThatThrownBy(() -> orderService.assignFactory(nonExistentId, factoryId, null, "Test description", List.of("https://example.com/image1.jpg")))
                     .isInstanceOf(EntityNotFoundException.class)
                     .hasMessageContaining("Order not found");
 

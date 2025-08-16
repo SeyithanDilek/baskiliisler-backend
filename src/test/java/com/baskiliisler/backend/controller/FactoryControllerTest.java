@@ -1,6 +1,7 @@
 package com.baskiliisler.backend.controller;
 
 import com.baskiliisler.backend.dto.FactoryAssignDto;
+import com.baskiliisler.backend.dto.FactoryCreateDto;
 import com.baskiliisler.backend.dto.FactoryRequestDto;
 import com.baskiliisler.backend.dto.FactoryResponseDto;
 import com.baskiliisler.backend.dto.OrderResponseDto;
@@ -132,7 +133,7 @@ class FactoryControllerTest {
         testOrder.getItems().add(orderItem);
         orderItem.setOrder(testOrder);
 
-        assignDto = new FactoryAssignDto(1L, LocalDate.now().plusDays(30));
+        assignDto = new FactoryAssignDto(1L, LocalDate.now().plusDays(30), "Test description", List.of("https://example.com/image1.jpg"));
     }
 
     @RestControllerAdvice
@@ -157,7 +158,7 @@ class FactoryControllerTest {
     @DisplayName("Siparişe fabrika ataması başarılı")
     void whenAssignFactory_thenReturnOrderResponse() throws Exception {
         // given
-        when(orderService.assignFactory(eq(1L), eq(1L), any(LocalDate.class)))
+        when(orderService.assignFactory(eq(1L), eq(1L), any(LocalDate.class), any(String.class), any(List.class)))
                 .thenReturn(testOrder);
 
         // when & then
@@ -192,7 +193,7 @@ class FactoryControllerTest {
     @DisplayName("Null factoryId ile fabrika ataması")
     void whenAssignFactory_withNullFactoryId_thenReturnBadRequest() throws Exception {
         // given
-        FactoryAssignDto invalidDto = new FactoryAssignDto(null, LocalDate.now().plusDays(30));
+        FactoryAssignDto invalidDto = new FactoryAssignDto(null, LocalDate.now().plusDays(30), null, null);
 
         // when & then
         mockMvc.perform(patch("/factories/orders/1/assign-factory")
@@ -205,7 +206,7 @@ class FactoryControllerTest {
     @DisplayName("Olmayan sipariş ID ile fabrika ataması")
     void whenAssignFactory_withNonExistingOrderId_thenReturnNotFound() throws Exception {
         // given
-        when(orderService.assignFactory(eq(999L), eq(1L), any(LocalDate.class)))
+        when(orderService.assignFactory(eq(999L), eq(1L), any(LocalDate.class), any(String.class), any(List.class)))
                 .thenThrow(new jakarta.persistence.EntityNotFoundException("Order not found"));
 
         // when & then
@@ -220,9 +221,9 @@ class FactoryControllerTest {
     void whenAssignFactory_withInvalidOrderStatus_thenReturnBadRequest() throws Exception {
         // given
         LocalDate deadline = LocalDate.now().plusDays(30);
-        FactoryAssignDto invalidStatusDto = new FactoryAssignDto(2L, deadline);
+        FactoryAssignDto invalidStatusDto = new FactoryAssignDto(2L, deadline, "Test description", List.of("https://example.com/image1.jpg"));
         
-        when(orderService.assignFactory(eq(1L), eq(2L), eq(deadline)))
+        when(orderService.assignFactory(eq(1L), eq(2L), eq(deadline), any(String.class), any(List.class)))
                 .thenThrow(new IllegalStateException("Sadece PENDING sipariş atanabilir"));
 
         // when & then
@@ -236,13 +237,17 @@ class FactoryControllerTest {
     @DisplayName("Yeni fabrika oluşturma")
     void whenCreateFactory_thenReturnCreatedFactory() throws Exception {
         // given
-        FactoryRequestDto requestDto = new FactoryRequestDto(
-                "New Factory",
-                "New Address",
-                "+90 555 999 88 77",
-                "FAC001",  // factoryNumber
-                "factory@test.com",  // userEmail
-                true
+        FactoryCreateDto requestDto = new FactoryCreateDto(
+                new FactoryCreateDto.FactoryInfo(
+                        "New Factory",
+                        "New Address",
+                        "FAC001"
+                ),
+                new FactoryCreateDto.UserInfo(
+                        "New Factory User",
+                        "factory@test.com",
+                        "+90 555 111 22 33"
+                )
         );
 
         Factory createdFactory = Factory.builder()
@@ -253,7 +258,7 @@ class FactoryControllerTest {
                 .active(true)
                 .build();
 
-        when(factoryService.create(any(FactoryRequestDto.class))).thenReturn(createdFactory);
+        when(factoryService.createWithUser(any(FactoryCreateDto.class))).thenReturn(createdFactory);
 
         // when & then
         mockMvc.perform(post("/factories")

@@ -20,13 +20,18 @@ public class BrandMapper {
     }
 
     public static BrandResponseDto toDto(Brand brand) {
+        Long assignedUserId = brand.getAssignedUser() != null ? 
+            brand.getAssignedUser().getId() : null;
+            
         return new BrandResponseDto(
                 brand.getId(),
                 brand.getName(),
                 brand.getContactEmail(),
                 brand.getContactPhone(),
                 brand.getTaxNumber(),
-                brand.getLogoUrl()
+                brand.getLogoUrl(),
+                brand.getCreatedAt(),
+                assignedUserId
         );
     }
 
@@ -36,16 +41,24 @@ public class BrandMapper {
         if (dto.contactPhone()  != null) entity.setContactPhone(dto.contactPhone());
         if (dto.taxNumber()     != null) entity.setTaxNumber(dto.taxNumber());
         if (dto.logoUrl()       != null) entity.setLogoUrl(dto.logoUrl());
+        if (dto.assignedUserId() != null) {
+            // assignedUserId güncelleniyor - User entity'si set edilecek
+            // Bu işlem BrandService'te yapılacak çünkü User entity'sine ihtiyaç var
+        }
     }
     
     public static BrandDetailDto toDetailDto(Brand brand, ProcessStatus status) {
+        Long assignedUserId = brand.getAssignedUser() != null ? 
+            brand.getAssignedUser().getId() : null;
+            
         return new BrandDetailDto(
                 brand.getId(),
                 brand.getName(),
                 brand.getContactEmail(),
                 brand.getContactPhone(),
                 brand.getTaxNumber(),
-                status
+                status,
+                assignedUserId
         );
     }
 }

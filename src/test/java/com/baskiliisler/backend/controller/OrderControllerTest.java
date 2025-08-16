@@ -209,7 +209,7 @@ class OrderControllerTest {
     void whenAssignFactory_thenReturnUpdatedOrder() throws Exception {
         // given
         Long orderId = 1L;
-        FactoryAssignDto request = new FactoryAssignDto(1L, LocalDate.now().plusDays(30));
+        FactoryAssignDto request = new FactoryAssignDto(1L, LocalDate.now().plusDays(30), "Test description", List.of("https://example.com/image1.jpg"));
         
         Order updatedOrder = Order.builder()
                 .id(orderId)
@@ -221,7 +221,7 @@ class OrderControllerTest {
                 .status(OrderStatus.IN_PRODUCTION)
                 .build();
 
-        when(orderService.assignFactory(orderId, request.factoryId(), request.deadline())).thenReturn(updatedOrder);
+        when(orderService.assignFactory(orderId, request.factoryId(), request.deadline(), request.description(), request.imageUrls())).thenReturn(updatedOrder);
 
         // when & then
         mockMvc.perform(patch("/orders/{id}/assign-factory", orderId)
@@ -237,9 +237,9 @@ class OrderControllerTest {
     void whenAssignInvalidFactory_thenReturn400() throws Exception {
         // given
         Long orderId = 1L;
-        FactoryAssignDto request = new FactoryAssignDto(999L, null);
+        FactoryAssignDto request = new FactoryAssignDto(999L, null, null, null);
         
-        when(orderService.assignFactory(orderId, request.factoryId(), request.deadline()))
+        when(orderService.assignFactory(orderId, request.factoryId(), request.deadline(), request.description(), request.imageUrls()))
                 .thenThrow(new EntityNotFoundException("Fabrika bulunamadı"));
 
         // when & then

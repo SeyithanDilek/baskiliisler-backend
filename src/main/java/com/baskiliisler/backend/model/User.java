@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "users")
 @Data
@@ -34,8 +36,22 @@ public class User {
     @Column(nullable = false, length = 20)
     private Role role;
 
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
     /** Kullanıcı yalnızca bir bayiye (dealer) bağlı olabilir. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dealer_id")  // NULL ise ⇒ SUPER_ADMIN
     private Dealer dealer;
+    
+    /** FACTORY_USER rolündeki kullanıcılar için fabrika ataması */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "factory_id")  // NULL ise ⇒ FACTORY_USER değil
+    private Factory factory;
+    
+    @PrePersist
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

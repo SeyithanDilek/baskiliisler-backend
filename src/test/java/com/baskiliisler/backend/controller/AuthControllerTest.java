@@ -40,8 +40,11 @@ class AuthControllerTest {
     private LoginRequestDto testLoginRequest;
     private RegisterRequestDto testRegisterRequest;
     private ChangePasswordRequestDto testChangePasswordRequest;
+    private ForgotPasswordRequestDto testForgotPasswordRequest;
+    private ResetPasswordRequestDto testResetPasswordRequest;
     private AuthResponseDto testAuthResponse;
     private UserResponseDto testUserResponse;
+    private PasswordResetResponseDto testPasswordResetResponse;
 
     @BeforeEach
     void setUp() {
@@ -67,12 +70,20 @@ class AuthControllerTest {
                 "newPassword123"
         );
 
+        testForgotPasswordRequest = new ForgotPasswordRequestDto("test@example.com");
+        
+        testResetPasswordRequest = new ResetPasswordRequestDto("valid-token", "newPassword123");
+
+        testPasswordResetResponse = new PasswordResetResponseDto("Şifre sıfırlama linki email adresinize gönderildi", true);
+
         testUserResponse = new UserResponseDto(
                 1L,
                 "Test User",
                 "test@example.com",
                 "+90 555 123 45 67",
-                Role.DEALER_USER
+                Role.DEALER_USER,
+                1L,
+                "Test Dealer"
         );
 
         testAuthResponse = new AuthResponseDto(
@@ -303,6 +314,81 @@ class AuthControllerTest {
                     .andExpect(status().isNoContent());
 
             verify(authService).logout();
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /auth/forgot-password - Şifremi unuttum")
+    class ForgotPassword {
+
+        @Test
+        @DisplayName("Geçerli email ile şifremi unuttum isteği yapıldığında 200 OK döndürmeli")
+        void givenValidEmail_whenForgotPassword_thenShouldReturn200() throws Exception {
+            // Given
+            when(authService.forgotPassword(any(ForgotPasswordRequestDto.class))).thenReturn(testPasswordResetResponse);
+
+            // When & Then
+            mockMvc.perform(post("/auth/forgot-password")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(testForgotPasswordRequest)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value(testPasswordResetResponse.message()))
+                    .andExpect(jsonPath("$.success").value(testPasswordResetResponse.success()));
+
+            verify(authService).forgotPassword(any(ForgotPasswordRequestDto.class));
+        }
+
+        @Test
+        @DisplayName("Geçersiz email formatı ile şifremi unuttum isteği yapıldığında 400 Bad Request döndürmeli")
+        void givenInvalidEmail_whenForgotPassword_thenShouldReturn400() throws Exception {
+            // Given
+            ForgotPasswordRequestDto invalidRequest = new ForgotPasswordRequestDto("invalid-email");
+
+            // When & Then
+            mockMvc.perform(post("/auth/forgot-password")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(invalidRequest)))
+                    .andExpect(status().isBadRequest());
+
+            verify(authService, never()).forgotPassword(any(ForgotPasswordRequestDto.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /auth/reset-password - Şifre sıfırlama")
+    class ResetPassword {
+
+        @Test
+        @DisplayName("Geçerli token ve şifre ile sıfırlama yapıldığında 200 OK döndürmeli")
+        void givenValidTokenAndPassword_whenResetPassword_thenShouldReturn200() throws Exception {
+            // Given
+            PasswordResetResponseDto successResponse = new PasswordResetResponseDto("Şifre başarıyla güncellendi", true);
+            when(authService.resetPassword(any(ResetPasswordRequestDto.class))).thenReturn(successResponse);
+
+            // When & Then
+            mockMvc.perform(post("/auth/reset-password")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(testResetPasswordRequest)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value(successResponse.message()))
+                    .andExpect(jsonPath("$.success").value(successResponse.success()));
+
+            verify(authService).resetPassword(any(ResetPasswordRequestDto.class));
+        }
+
+        @Test
+        @DisplayName("Geçersiz şifre formatı ile sıfırlama yapılmaya çalışıldığında 400 Bad Request döndürmeli")
+        void givenInvalidPassword_whenResetPassword_thenShouldReturn400() throws Exception {
+            // Given
+            ResetPasswordRequestDto invalidRequest = new ResetPasswordRequestDto("valid-token", "123");
+
+            // When & Then
+            mockMvc.perform(post("/auth/reset-password")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(invalidRequest)))
+                    .andExpect(status().isBadRequest());
+
+            verify(authService, never()).resetPassword(any(ResetPasswordRequestDto.class));
         }
     }
 } 

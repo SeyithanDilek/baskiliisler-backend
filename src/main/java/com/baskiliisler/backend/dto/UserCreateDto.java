@@ -25,4 +25,7 @@ public class UserCreateDto {
     @Pattern(regexp = "^\\+90\\s?5\\d{2}\\s?\\d{3}\\s?\\d{2}\\s?\\d{2}$", 
              message = "Telefon numarası +90 5XX XXX XX XX formatında olmalıdır")
     private String phoneNumber;
+    
+    private Long dealerId;  // dealer ID (nullable)
+    private Long factoryId; // factory ID (nullable)
 } 

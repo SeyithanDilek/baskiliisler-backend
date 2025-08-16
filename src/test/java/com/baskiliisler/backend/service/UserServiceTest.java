@@ -4,6 +4,7 @@ import com.baskiliisler.backend.common.Role;
 import com.baskiliisler.backend.config.SecurityUtil;
 import com.baskiliisler.backend.dto.UserCreateDto;
 import com.baskiliisler.backend.dto.UserResponseDto;
+import com.baskiliisler.backend.model.Dealer;
 import com.baskiliisler.backend.model.User;
 import com.baskiliisler.backend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +48,12 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
+        Dealer testDealer = Dealer.builder()
+                .id(1L)
+                .name("Test Dealer")
+                .active(true)
+                .build();
+
         testUser = User.builder()
                 .id(TEST_USER_ID)
                 .name("Test User")
@@ -54,6 +61,7 @@ class UserServiceTest {
                 .phoneNumber("+90 555 123 45 67")
                 .passwordHash(TEST_PASSWORD_HASH)
                 .role(Role.SUPER_ADMIN)
+                .dealer(testDealer)
                 .build();
     }
 
@@ -74,28 +82,32 @@ class UserServiceTest {
             String plainPassword = "TestPass123!";
             String hashedPassword = "$2a$10$hashedPassword";
 
-            when(userRepository.existsByEmail(createDto.getEmail())).thenReturn(false);
-            when(passwordEncoder.encode(any())).thenReturn(hashedPassword);
-            when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
-                User user = invocation.getArgument(0);
-                user.setId(1L);
-                return user;
-            });
+            try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
+                mockedSecurityUtil.when(SecurityUtil::currentUserId).thenReturn(TEST_USER_ID);
+                when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+                when(userRepository.existsByEmail(createDto.getEmail())).thenReturn(false);
+                when(passwordEncoder.encode(any())).thenReturn(hashedPassword);
+                when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+                    User user = invocation.getArgument(0);
+                    user.setId(1L);
+                    return user;
+                });
 
-            // when
-            UserResponseDto result = userService.createUser(createDto);
+                // when
+                UserResponseDto result = userService.createUser(createDto);
 
-            // then
-            assertThat(result).isNotNull();
-            assertThat(result.name()).isEqualTo("New User");
-            assertThat(result.email()).isEqualTo("newuser@example.com");
-            assertThat(result.phoneNumber()).isEqualTo("+90 555 999 99 99");
-            assertThat(result.role()).isEqualTo(Role.DEALER_USER);
+                // then
+                assertThat(result).isNotNull();
+                assertThat(result.name()).isEqualTo("New User");
+                assertThat(result.email()).isEqualTo("newuser@example.com");
+                assertThat(result.phoneNumber()).isEqualTo("+90 555 999 99 99");
+                assertThat(result.role()).isEqualTo(Role.DEALER_USER);
 
-            verify(userRepository).existsByEmail(createDto.getEmail());
-            verify(passwordEncoder).encode(any());
-            verify(userRepository).save(any(User.class));
-            verify(emailService).sendWelcomeEmail(eq(createDto.getEmail()), eq(createDto.getName()), any());
+                verify(userRepository).existsByEmail(createDto.getEmail());
+                verify(passwordEncoder).encode(any());
+                verify(userRepository).save(any(User.class));
+                verify(emailService).sendWelcomeEmail(eq(createDto.getEmail()), eq(createDto.getName()), any());
+            }
         }
 
         @Test

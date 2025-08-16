@@ -3,12 +3,19 @@ package com.baskiliisler.backend.service;
 import com.baskiliisler.backend.common.Role;
 import com.baskiliisler.backend.config.SecurityUtil;
 import com.baskiliisler.backend.dto.DealerRequestDto;
+import com.baskiliisler.backend.dto.DealerUpdateDto;
 import com.baskiliisler.backend.dto.DealerResponseDto;
+import com.baskiliisler.backend.dto.DealerOverviewResponse;
 import com.baskiliisler.backend.mapper.DealerMapper;
 import com.baskiliisler.backend.model.Dealer;
 import com.baskiliisler.backend.model.User;
 import com.baskiliisler.backend.repository.DealerRepository;
 import com.baskiliisler.backend.repository.UserRepository;
+import com.baskiliisler.backend.repository.ProductRepository;
+import com.baskiliisler.backend.repository.BrandRepository;
+import com.baskiliisler.backend.repository.QuoteRepository;
+import com.baskiliisler.backend.repository.OrderRepository;
+import com.baskiliisler.backend.type.OrderStatus;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +31,10 @@ public class DealerService {
 
     private final DealerRepository dealerRepository;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
+    private final BrandRepository brandRepository;
+    private final QuoteRepository quoteRepository;
+    private final OrderRepository orderRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     
@@ -64,7 +75,7 @@ public class DealerService {
             throw new RuntimeException("Dealer admin oluşturuldu ama email gönderilemedi: " + e.getMessage());
         }
         
-        return DealerMapper.toResponseDto(savedDealer);
+        return DealerMapper.toResponseDto(savedDealer, userRepository);
     }
 
     private User createDealerAdminUser(DealerRequestDto dto, Dealer dealer, String password) {
@@ -97,7 +108,7 @@ public class DealerService {
         // SUPER_ADMIN tüm bayileri görebilir
         if (currentUser.getRole() == Role.SUPER_ADMIN) {
             return dealerRepository.findByActive(true).stream()
-                    .map(DealerMapper::toResponseDto)
+                    .map(dealer -> DealerMapper.toResponseDto(dealer, userRepository))
                     .toList();
         }
         
@@ -106,7 +117,7 @@ public class DealerService {
             throw new IllegalStateException("Kullanıcının atanmış bir bayisi yok");
         }
         
-        return List.of(DealerMapper.toResponseDto(currentUser.getDealer()));
+        return List.of(DealerMapper.toResponseDto(currentUser.getDealer(), userRepository));
     }
 
     public DealerResponseDto findById(Long id) {
@@ -121,7 +132,7 @@ public class DealerService {
             throw new IllegalArgumentException("Bu bayi bilgilerine erişim yetkiniz yok");
         }
         
-        return DealerMapper.toResponseDto(dealer);
+        return DealerMapper.toResponseDto(dealer, userRepository);
     }
 
     @Transactional
@@ -145,7 +156,32 @@ public class DealerService {
         DealerMapper.updateDealerFromDto(dealer, dto);
         Dealer savedDealer = dealerRepository.save(dealer);
         
-        return DealerMapper.toResponseDto(savedDealer);
+        return DealerMapper.toResponseDto(savedDealer, userRepository);
+    }
+    
+    @Transactional
+    public DealerResponseDto updateDealerWithAdmin(Long id, DealerUpdateDto dto) {
+        User currentUser = getCurrentUser();
+        
+        Dealer dealer = dealerRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Bayi bulunamadı"));
+        
+        // Yetki kontrolü
+        if (currentUser.getRole() != Role.SUPER_ADMIN && 
+            !dealer.equals(currentUser.getDealer())) {
+            throw new IllegalArgumentException("Bu bayi bilgilerini güncelleme yetkiniz yok");
+        }
+        
+        // Bayi adı benzersizlik kontrolü (kendisi hariç)
+        if (!dealer.getName().equals(dto.name()) && dealerRepository.existsByName(dto.name())) {
+            throw new IllegalArgumentException("Bu bayi adı zaten kullanılıyor");
+        }
+        
+        // Dealer bilgilerini güncelle
+        DealerMapper.updateDealerFromUpdateDto(dealer, dto);
+        Dealer savedDealer = dealerRepository.save(dealer);
+        
+        return DealerMapper.toResponseDto(savedDealer, userRepository);
     }
 
     @Transactional
@@ -190,5 +226,32 @@ public class DealerService {
     private User getCurrentUser() {
         return userRepository.findById(SecurityUtil.currentUserId())
                 .orElseThrow(() -> new EntityNotFoundException("Kullanıcı bulunamadı"));
+    }
+
+    public DealerOverviewResponse getDealerOverview(Long dealerId) {
+        User currentUser = getCurrentUser();
+        
+        // Yetki kontrolü
+        if (currentUser.getRole() != Role.SUPER_ADMIN && 
+            (currentUser.getDealer() == null || !dealerId.equals(currentUser.getDealer().getId()))) {
+            throw new IllegalArgumentException("Bu bayi bilgilerine erişim yetkiniz yok");
+        }
+        
+        // Dealer'ı bul
+        Dealer dealer = dealerRepository.findById(dealerId)
+                .orElseThrow(() -> new EntityNotFoundException("Bayi bulunamadı"));
+        
+        // İstatistikleri hesapla
+        Integer totalProducts = productRepository.countByDealer(dealer);
+        Integer totalBrands = brandRepository.countByDealer(dealer);
+        Integer totalQuotes = quoteRepository.countByDealer(dealer);
+        Integer pendingFactoryAssignments = orderRepository.countByDealerAndStatus(dealer, OrderStatus.PENDING);
+        
+        return new DealerOverviewResponse(
+            totalProducts,
+            totalBrands,
+            totalQuotes,
+            pendingFactoryAssignments
+        );
     }
 } 

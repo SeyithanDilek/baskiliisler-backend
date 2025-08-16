@@ -13,7 +13,10 @@ public record QuoteResponseDto(
         LocalDate validUntil,
         String brandName,
         LocalDateTime createdAt,
-        List<QuoteItemResp> items) {
+        LocalDateTime updatedAt,
+        Long dealerId,
+        List<QuoteItemResp> items,
+        AssignedUserInfo assignedUser) {
 
     public record QuoteItemResp(
             Long productId,
@@ -24,4 +27,10 @@ public record QuoteResponseDto(
             BigDecimal lineTotal,
             BigDecimal taxAmount,
             BigDecimal lineTotalWithTax) {}
+    
+    public record AssignedUserInfo(
+            Long id,
+            String name,
+            String email,
+            String phone) {}
 }

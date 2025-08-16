@@ -20,12 +20,28 @@ public record OrderResponseDto(
         List<ItemResp> items,           // kalem listesi
         String customerLogoUrl,         // müşterinin logosu
         String description,             // sipariş açıklaması
-        String customerTaxNumber        // müşterinin vergi numarası
+        String customerTaxNumber,       // müşterinin vergi numarası
+        List<String> imageUrls          // üretim için gönderilen image URL'leri
 ) {
 
-    public record BrandInfo(Long id, String name, String logoUrl) {}
+    public record BrandInfo(
+            Long id, 
+            String name, 
+            String logoUrl,
+            String contactPhone,
+            AssignedUserInfo assignedUser) {}
     
-    public record FactoryInfo(Long id, String name) {}
+    public record FactoryInfo(
+            Long id, 
+            String name,
+            String phone,
+            String address) {}
+    
+    public record AssignedUserInfo(
+            Long id,
+            String name,
+            String email,
+            String phone) {}
 
     public record ItemResp(
             Long productId,

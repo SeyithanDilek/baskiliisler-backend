@@ -7,7 +7,11 @@ import com.baskiliisler.backend.dto.UserResponseDto;
 import com.baskiliisler.backend.dto.UserUpdateDto;
 import com.baskiliisler.backend.mapper.UserMapper;
 import com.baskiliisler.backend.model.User;
+import com.baskiliisler.backend.model.Dealer;
+import com.baskiliisler.backend.model.Factory;
 import com.baskiliisler.backend.repository.UserRepository;
+import com.baskiliisler.backend.repository.DealerRepository;
+import com.baskiliisler.backend.repository.FactoryRepository;
 import com.baskiliisler.backend.util.PasswordGenerator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +23,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -26,6 +31,8 @@ import java.util.List;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final DealerRepository dealerRepository;
+    private final FactoryRepository factoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
@@ -47,6 +54,42 @@ public class UserService implements UserDetailsService {
         
         // Yeni kullanıcıyı belirtilen rol ile oluştur
         User user = UserMapper.toUser(dto, passwordHash, role);
+        
+        // Dealer ataması - FACTORY_USER için dealer gerekli değil
+        if (role != Role.FACTORY_USER) {
+            User currentUser = getCurrentUser();
+            if (dto.getDealerId() == null) {
+                // dealerId null ise kullanıcının dealer'ını kullan
+                if (currentUser.getDealer() == null) {
+                    throw new IllegalStateException("Kullanıcının atanmış bir dealer'ı yok");
+                }
+                user.setDealer(currentUser.getDealer());
+            } else {
+                // dealerId verilmişse, sadece SUPER_ADMIN farklı dealer seçebilir
+                if (currentUser.getRole() == Role.SUPER_ADMIN) {
+                    Dealer dealer = dealerRepository.findById(dto.getDealerId())
+                            .orElseThrow(() -> new EntityNotFoundException("Dealer bulunamadı"));
+                    user.setDealer(dealer);
+                } else {
+                    // Diğer roller sadece kendi dealer'larını seçebilir
+                    if (currentUser.getDealer() == null) {
+                        throw new IllegalStateException("Kullanıcının atanmış bir dealer'ı yok");
+                    }
+                    if (!dto.getDealerId().equals(currentUser.getDealer().getId())) {
+                        throw new IllegalStateException("Sadece kendi dealer'ınızı seçebilirsiniz");
+                    }
+                    user.setDealer(currentUser.getDealer());
+                }
+            }
+        }
+        
+        // Factory ataması - FACTORY_USER için factory gerekli
+        if (role == Role.FACTORY_USER && dto.getFactoryId() != null) {
+            Factory factory = factoryRepository.findById(dto.getFactoryId())
+                    .orElseThrow(() -> new EntityNotFoundException("Factory bulunamadı"));
+            user.setFactory(factory);
+        }
+        
         User savedUser = userRepository.save(user);
         
         // Hoşgeldiniz emaili gönder
@@ -62,6 +105,36 @@ public class UserService implements UserDetailsService {
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
+    }
+
+    public List<User> getUsersByDealer(Long dealerId) {
+        User currentUser = getCurrentUser();
+        
+        // Yetki kontrolü
+        if (currentUser.getRole() != Role.SUPER_ADMIN && 
+            (currentUser.getDealer() == null || !dealerId.equals(currentUser.getDealer().getId()))) {
+            throw new IllegalStateException("Bu dealer'ın verilerine erişim yetkiniz yok");
+        }
+        
+        // Dealer'ı bul
+        Dealer dealer = dealerRepository.findById(dealerId)
+                .orElseThrow(() -> new EntityNotFoundException("Dealer bulunamadı"));
+        
+        return userRepository.findByDealer(dealer);
+    }
+
+    public List<User> getDealerUsers() {
+        User currentUser = getCurrentUser();
+        
+        if (currentUser.getRole() != Role.DEALER_ADMIN) {
+            throw new IllegalStateException("Bu endpoint sadece DEALER_ADMIN kullanıcıları tarafından kullanılabilir");
+        }
+        
+        if (currentUser.getDealer() == null) {
+            throw new IllegalStateException("Kullanıcının atanmış bir bayisi yok");
+        }
+        
+        return userRepository.findByDealer(currentUser.getDealer());
     }
 
     public UserResponseDto findById(Long id) {
@@ -109,21 +182,19 @@ public class UserService implements UserDetailsService {
         if (currentUser.getRole() != Role.FACTORY_USER) {
             throw new IllegalStateException("Bu işlem sadece FACTORY_USER rolü için geçerlidir");
         }
-        // Factory kullanıcısının email'inden fabrika ID'sini çıkar (ör: factory-5@fabrika.com → 5)
-        String email = currentUser.getEmail();
-        if (!email.contains("@")) {
-            throw new IllegalStateException("Geçersiz factory kullanıcı email formatı");
+        
+        // JWT claim'den factoryId'yi al (daha performanslı)
+        Long factoryId = SecurityUtil.currentUserFactoryId();
+        
+        // Backwards compatibility: Eski token'larda factoryId claim'i yoksa database'den al
+        if (factoryId == null) {
+            if (currentUser.getFactory() == null) {
+                throw new IllegalStateException("FACTORY_USER kullanıcısının atanmış bir fabrikası yok");
+            }
+            factoryId = currentUser.getFactory().getId();
         }
-        // Örnek: factory-5@fabrika.com → 5
-        String localPart = email.substring(0, email.indexOf("@"));
-        if (!localPart.startsWith("factory-")) {
-            throw new IllegalStateException("Geçersiz factory kullanıcı email formatı");
-        }
-        try {
-            return Long.parseLong(localPart.replace("factory-", ""));
-        } catch (NumberFormatException e) {
-            throw new IllegalStateException("Factory ID çözümlenemedi");
-        }
+        
+        return factoryId;
     }
 
     @Transactional

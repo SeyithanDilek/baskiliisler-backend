@@ -38,8 +38,8 @@ public class SecurityConfig {
                             response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN);
                         }))
                 .authorizeHttpRequests(auth -> auth
-                                        .anyRequest().permitAll());
-        // .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                                        .anyRequest().permitAll())
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

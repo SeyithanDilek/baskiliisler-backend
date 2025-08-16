@@ -3,11 +3,26 @@ package com.baskiliisler.backend.mapper;
 import com.baskiliisler.backend.dto.DealerRequestDto;
 import com.baskiliisler.backend.dto.DealerResponseDto;
 import com.baskiliisler.backend.model.Dealer;
+import com.baskiliisler.backend.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 class DealerMapperTest {
+
+    @Mock
+    private UserRepository userRepository;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     void toResponseDto_ShouldMapDealerToResponseDto() {
@@ -21,8 +36,11 @@ class DealerMapperTest {
                 .active(true)
                 .build();
 
+        // Mock empty user list (no admin)
+        when(userRepository.findByDealer(dealer)).thenReturn(List.of());
+
         // When
-        DealerResponseDto result = DealerMapper.toResponseDto(dealer);
+        DealerResponseDto result = DealerMapper.toResponseDto(dealer, userRepository);
 
         // Then
         assertEquals(dealer.getId(), result.id());
@@ -31,6 +49,7 @@ class DealerMapperTest {
         assertEquals(dealer.getPhoneNumber(), result.phoneNumber());
         assertEquals(dealer.getTaxNumber(), result.taxNumber());
         assertEquals(dealer.isActive(), result.active());
+        assertNull(result.admin()); // No admin found
     }
 
     @Test

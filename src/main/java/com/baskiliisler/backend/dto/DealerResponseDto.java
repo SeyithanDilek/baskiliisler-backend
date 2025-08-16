@@ -6,6 +6,7 @@ public record DealerResponseDto(
         String address,
         String phoneNumber,
         String taxNumber,
-        boolean active
+        boolean active,
+        DealerAdminInfo admin
 ) {
 } 

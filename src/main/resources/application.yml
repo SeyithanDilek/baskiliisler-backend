@@ -65,7 +65,7 @@ spring:
     enabled: false                   # DDL-auto create kullandığımız için Flyway'i kapat
 
 server:
-  port: 8088
+  port: 8090
   error:
     include-message: never
   tomcat:
@@ -102,6 +102,7 @@ logging:
 # App konfigürasyonu
 app:
   login-url: ${LOGIN_URL:http://localhost:3000/login}
+  reset-password-url: ${RESET_PASSWORD_URL:http://localhost:3000/reset-password}
 
 # Server configuration
 

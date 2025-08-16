@@ -5,6 +5,7 @@ import com.baskiliisler.backend.dto.BrandRequestDto;
 import com.baskiliisler.backend.dto.BrandResponseDto;
 import com.baskiliisler.backend.dto.BrandUpdateDto;
 import com.baskiliisler.backend.model.Brand;
+import com.baskiliisler.backend.model.User;
 import com.baskiliisler.backend.type.ProcessStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -64,6 +65,7 @@ class BrandMapperTest {
         assertThat(result.contactPhone()).isEqualTo("1234567890");
         assertThat(result.taxNumber()).isEqualTo("1234567890");
         assertThat(result.logoUrl()).isEqualTo("https://example.com/logo.png");
+        assertThat(result.assignedUserId()).isNull();
     }
 
     @Test
@@ -90,6 +92,7 @@ class BrandMapperTest {
         assertThat(result.contactPhone()).isEqualTo("1234567890");
         assertThat(result.taxNumber()).isEqualTo("1234567890");
         assertThat(result.status()).isEqualTo(ProcessStatus.OFFER_SENT);
+        assertThat(result.assignedUserId()).isNull();
     }
 
     @Test
@@ -133,7 +136,8 @@ class BrandMapperTest {
                 "new@email.com",
                 "2222222222",
                 "9876543210", // taxNumber
-                "https://example.com/new-logo.png"
+                "https://example.com/new-logo.png",
+                null
         );
 
         // when
@@ -162,7 +166,8 @@ class BrandMapperTest {
                 null, // Email güncellenmeyecek
                 "3333333333",
                 null, // Tax number güncellenmeyecek
-                null  // Logo URL güncellenmeyecek
+                null, // Logo URL güncellenmeyecek
+                null  // AssignedUserId güncellenmeyecek
         );
 
         // when
@@ -186,7 +191,7 @@ class BrandMapperTest {
                 .contactPhone("1111111111")
                 .build();
 
-        BrandUpdateDto updateDto = new BrandUpdateDto(null, null, null, null, null);
+        BrandUpdateDto updateDto = new BrandUpdateDto(null, null, null, null, null, null);
 
         // when
         BrandMapper.updateEntity(updateDto, brand);
@@ -219,5 +224,79 @@ class BrandMapperTest {
         assertThat(result.getName()).isEqualTo("Test Brand");
         assertThat(result.getContactEmail()).isNull();
         assertThat(result.getContactPhone()).isNull();
+    }
+
+    @Test
+    @DisplayName("Brand entity'yi assignedUser ile BrandResponseDto'ya dönüştürme")
+    void whenToDto_withAssignedUser_thenReturnBrandResponseDtoWithAssignedUserIds() {
+        // given
+        User assignedUser = User.builder()
+                .id(100L)
+                .name("Test User")
+                .email("test@user.com")
+                .phoneNumber("1234567890")
+                .passwordHash("hash")
+                .role(com.baskiliisler.backend.common.Role.DEALER_USER)
+                .build();
+                
+        Brand brand = Brand.builder()
+                .id(1L)
+                .name("Test Brand")
+                .contactEmail("test@brand.com")
+                .contactPhone("1234567890")
+                .taxNumber("1234567890")
+                .logoUrl("https://example.com/logo.png")
+                .assignedUser(assignedUser)
+                .build();
+
+        // when
+        BrandResponseDto result = BrandMapper.toDto(brand);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.name()).isEqualTo("Test Brand");
+        assertThat(result.contactEmail()).isEqualTo("test@brand.com");
+        assertThat(result.contactPhone()).isEqualTo("1234567890");
+        assertThat(result.taxNumber()).isEqualTo("1234567890");
+        assertThat(result.logoUrl()).isEqualTo("https://example.com/logo.png");
+        assertThat(result.assignedUserId()).isEqualTo(100L);
+    }
+
+    @Test
+    @DisplayName("Brand entity'yi assignedUser ile BrandDetailDto'ya dönüştürme")
+    void whenToDetailDto_withAssignedUser_thenReturnBrandDetailDtoWithAssignedUserIds() {
+        // given
+        User assignedUser = User.builder()
+                .id(200L)
+                .name("Test User")
+                .email("test@user.com")
+                .phoneNumber("1234567890")
+                .passwordHash("hash")
+                .role(com.baskiliisler.backend.common.Role.DEALER_USER)
+                .build();
+                
+        Brand brand = Brand.builder()
+                .id(1L)
+                .name("Test Brand")
+                .contactEmail("test@brand.com")
+                .contactPhone("1234567890")
+                .taxNumber("1234567890")
+                .assignedUser(assignedUser)
+                .build();
+        ProcessStatus status = ProcessStatus.OFFER_SENT;
+
+        // when
+        BrandDetailDto result = BrandMapper.toDetailDto(brand, status);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.name()).isEqualTo("Test Brand");
+        assertThat(result.contactEmail()).isEqualTo("test@brand.com");
+        assertThat(result.contactPhone()).isEqualTo("1234567890");
+        assertThat(result.taxNumber()).isEqualTo("1234567890");
+        assertThat(result.status()).isEqualTo(ProcessStatus.OFFER_SENT);
+        assertThat(result.assignedUserId()).isEqualTo(200L);
     }
 } 

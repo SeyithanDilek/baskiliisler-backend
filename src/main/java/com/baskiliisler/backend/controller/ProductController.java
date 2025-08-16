@@ -32,9 +32,9 @@ public class ProductController {
     }
 
     @GetMapping
-    @Operation(summary = "Tüm ürünleri listele", description = "Sistemdeki tüm ürünleri listeler")
-    public List<ProductResponseDto> getAllProducts() {
-        return productService.getAllProducts().stream()
+    @Operation(summary = "Tüm ürünleri listele", description = "Sistemdeki tüm ürünleri listeler. dealerId parametresi ile belirli dealer'ın ürünlerini filtreleyebilirsiniz.")
+    public List<ProductResponseDto> getAllProducts(@RequestParam(required = false) Long dealerId) {
+        return productService.getAllProducts(dealerId).stream()
                 .map(ProductMapper::toResponseDto)
                 .toList();
     }
@@ -46,6 +46,8 @@ public class ProductController {
                 .map(ProductMapper::toResponseDto)
                 .toList();
     }
+
+
 
     @GetMapping("/{id}")
     @Operation(summary = "ID ile ürün getir", description = "Belirtilen ID'ye sahip ürünü getirir")

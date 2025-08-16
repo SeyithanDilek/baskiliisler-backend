@@ -8,5 +8,6 @@ public record BrandUpdateDto(
         @Email String contactEmail,
         String contactPhone,
         String taxNumber,                           // vergi numarası (opsiyonel)
-        String logoUrl                              // marka logosu URL'i (opsiyonel)
+        String logoUrl,                             // marka logosu URL'i (opsiyonel)
+        Long assignedUserId                         // atanmış kullanıcı ID'si (opsiyonel)
 ) {}

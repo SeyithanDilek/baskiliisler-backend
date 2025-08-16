@@ -50,6 +50,18 @@ public class AuthController {
         authService.logout();
     }
 
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Şifremi unuttum", description = "Email adresine şifre sıfırlama linki gönderir")
+    public PasswordResetResponseDto forgotPassword(@Valid @RequestBody ForgotPasswordRequestDto request) {
+        return authService.forgotPassword(request);
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Şifre sıfırla", description = "Token ile yeni şifre belirler")
+    public PasswordResetResponseDto resetPassword(@Valid @RequestBody ResetPasswordRequestDto request) {
+        return authService.resetPassword(request);
+    }
+
     // Backward compatibility için eski record'ları koruyoruz
     @Deprecated
     public record LoginRequest(String email, String password) {}

@@ -5,8 +5,10 @@ import com.baskiliisler.backend.dto.QuoteItemRequestDto;
 import com.baskiliisler.backend.dto.QuoteUpdateDto;
 import com.baskiliisler.backend.model.Brand;
 import com.baskiliisler.backend.model.BrandProcess;
+import com.baskiliisler.backend.model.Dealer;
 import com.baskiliisler.backend.model.Quote;
 import com.baskiliisler.backend.model.QuoteItem;
+import com.baskiliisler.backend.model.User;
 import com.baskiliisler.backend.repository.BrandRepository;
 import com.baskiliisler.backend.repository.QuoteRepository;
 import com.baskiliisler.backend.type.ProcessStatus;
@@ -63,6 +65,9 @@ class QuoteServiceTest {
     @Mock
     private com.baskiliisler.backend.notification.service.NotificationService notificationService;
 
+    @Mock
+    private com.baskiliisler.backend.service.UserService userService;
+
     @InjectMocks
     private QuoteService quoteService;
 
@@ -73,11 +78,18 @@ class QuoteServiceTest {
 
     @BeforeEach
     void setUp() {
+        Dealer testDealer = Dealer.builder()
+                .id(1L)
+                .name("Test Dealer")
+                .active(true)
+                .build();
+
         testBrand = Brand.builder()
                 .id(1L)
                 .name("Test Brand")
                 .contactEmail("test@brand.com")
                 .contactPhone("1234567890")
+                .dealer(testDealer)
                 .build();
 
         testQuote = Quote.builder()
@@ -108,6 +120,15 @@ class QuoteServiceTest {
                 List.of(item),
                 LocalDate.now().plusDays(45)
         );
+        
+        // UserService mock setup
+        User testUser = User.builder()
+                .id(1L)
+                .name("Test User")
+                .email("test@user.com")
+                .role(com.baskiliisler.backend.common.Role.SUPER_ADMIN)
+                .build();
+        when(userService.getCurrentUser()).thenReturn(testUser);
     }
 
     @Nested

@@ -27,3 +27,6 @@ logging:
 jwt:
   secret: test-secret-key-test-secret-key-test-secret-key-test
   expiration: 30m
+
+app:
+  reset-password-url: http://localhost:3000/reset-password

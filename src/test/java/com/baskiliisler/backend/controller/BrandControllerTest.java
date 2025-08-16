@@ -96,7 +96,7 @@ class BrandControllerTest {
                 .contactPhone("0987654321")
                 .build();
 
-        when(brandService.getAllBrands()).thenReturn(List.of(brand1, brand2));
+        when(brandService.getAllBrands(null)).thenReturn(List.of(brand1, brand2));
 
         // when & then
         mockMvc.perform(get("/brands"))
@@ -118,7 +118,8 @@ class BrandControllerTest {
                 "contact@test.com",
                 "1234567890",
                 "1234567890", // taxNumber
-                ProcessStatus.INIT
+                ProcessStatus.INIT,
+                null // assignedUserId
         );
 
         when(brandService.findById(brandId)).thenReturn(brand);
@@ -143,7 +144,8 @@ class BrandControllerTest {
                 "updated@test.com",
                 "9876543210",
                 "9876543210", // taxNumber
-                "https://example.com/updated-logo.png"
+                "https://example.com/updated-logo.png",
+                null
         );
 
         BrandDetailDto updatedBrand = new BrandDetailDto(
@@ -152,7 +154,8 @@ class BrandControllerTest {
                 request.contactEmail(),
                 request.contactPhone(),
                 request.taxNumber(),
-                ProcessStatus.INIT
+                ProcessStatus.INIT,
+                null // assignedUserId
         );
 
         when(brandService.updateBrand(eq(brandId), any(BrandUpdateDto.class))).thenReturn(updatedBrand);

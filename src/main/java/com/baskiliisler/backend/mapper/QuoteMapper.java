@@ -26,8 +26,23 @@ public class QuoteMapper {
                 .toList() : 
             Collections.emptyList();
             
+        // AssignedUser bilgisi
+        QuoteResponseDto.AssignedUserInfo assignedUser = null;
+        if (q.getBrand() != null && q.getBrand().getAssignedUser() != null) {
+            var user = q.getBrand().getAssignedUser();
+            assignedUser = new QuoteResponseDto.AssignedUserInfo(
+                    user.getId(),
+                    user.getName(),
+                    user.getEmail(),
+                    user.getPhoneNumber()
+            );
+        }
+        
         return new QuoteResponseDto(q.getId(), q.getStatus(),
                 q.getTotalPrice(), q.getValidUntil(), 
-                q.getBrand().getName(), q.getCreatedAt(), items);
+                q.getBrand().getName(), q.getCreatedAt(), 
+                q.getUpdatedAt(),
+                q.getDealer() != null ? q.getDealer().getId() : null, 
+                items, assignedUser);
     }
 }

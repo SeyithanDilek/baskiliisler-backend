@@ -1,6 +1,7 @@
 package com.baskiliisler.backend.model;
 
 import com.baskiliisler.backend.type.OrderStatus;
+import com.baskiliisler.backend.util.StringListConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -47,7 +48,7 @@ public class Order {
     private BigDecimal totalPrice;        // tekliften kopyalanır – değişmez
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 24)
+    @Column(name = "order_status", nullable = false)
     @Builder.Default
     private OrderStatus status = OrderStatus.PENDING;
 
@@ -61,7 +62,18 @@ public class Order {
     @Column(name = "customer_tax_number")
     private String customerTaxNumber;                 // müşterinin vergi numarası
 
+    @Column(name = "image_urls", columnDefinition = "TEXT")
+    @Convert(converter = StringListConverter.class)
+    @Builder.Default
+    private List<String> imageUrls = new ArrayList<>();  // üretim için gönderilen image URL'leri
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "dealer_id")
     private Dealer dealer;
+    
+    @PrePersist
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

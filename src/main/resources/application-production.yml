@@ -65,6 +65,7 @@ springdoc:
 # App Configuration
 app:
   base-url: ""
+  reset-password-url: ${RESET_PASSWORD_URL:https://baskili-isler.com/reset-password}
 
 # JWT Configuration - Hardcoded values
 jwt:

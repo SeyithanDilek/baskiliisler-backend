@@ -60,6 +60,8 @@ public class OrderController {
                 .toList();
     }
 
+
+
     @PatchMapping("/{id}/status")
     public ResponseEntity<OrderResponseDto> updateStatus(@PathVariable Long id,
                                                          @RequestBody @Valid OrderStatusUpdateDto dto) {
@@ -78,7 +80,13 @@ public class OrderController {
     @PatchMapping("/{id}/assign-factory")
     public ResponseEntity<OrderResponseDto> assignFactory(@PathVariable Long id,
                                                           @RequestBody @Valid FactoryAssignDto dto) {
-        Order order = orderService.assignFactory(id, dto.factoryId(), dto.deadline());
+        Order order = orderService.assignFactory(id, dto.factoryId(), dto.deadline(), dto.description(), dto.imageUrls());
         return ResponseEntity.ok(OrderMapper.toDto(order));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+        return ResponseEntity.noContent().build();
     }
 }

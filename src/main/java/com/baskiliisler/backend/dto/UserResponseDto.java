@@ -7,6 +7,8 @@ public record UserResponseDto(
         String name,
         String email,
         String phoneNumber,
-        Role role
+        Role role,
+        Long dealerId,
+        String dealerName
 ) {
 } 

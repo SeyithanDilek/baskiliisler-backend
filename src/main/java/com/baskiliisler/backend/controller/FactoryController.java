@@ -1,6 +1,7 @@
 package com.baskiliisler.backend.controller;
 
 import com.baskiliisler.backend.dto.FactoryAssignDto;
+import com.baskiliisler.backend.dto.FactoryCreateDto;
 import com.baskiliisler.backend.dto.FactoryRequestDto;
 import com.baskiliisler.backend.dto.FactoryResponseDto;
 import com.baskiliisler.backend.dto.OrderResponseDto;
@@ -27,14 +28,14 @@ public class FactoryController {
     @PatchMapping("/orders/{id}/assign-factory")
     public OrderResponseDto assignFactory(@PathVariable Long id,
                                           @RequestBody @Valid FactoryAssignDto dto) {
-        Order o = orderService.assignFactory(id, dto.factoryId(), dto.deadline());
+        Order o = orderService.assignFactory(id, dto.factoryId(), dto.deadline(), dto.description(), dto.imageUrls());
         return OrderMapper.toDto(o);
     }
 
     @PostMapping
-    public ResponseEntity<FactoryResponseDto> create(@RequestBody @Valid FactoryRequestDto dto) {
+    public ResponseEntity<FactoryResponseDto> create(@RequestBody @Valid FactoryCreateDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(FactoryMapper.toDto(factoryService.create(dto)));
+                .body(FactoryMapper.toDto(factoryService.createWithUser(dto)));
     }
 
     @PutMapping(value = "/{id}")

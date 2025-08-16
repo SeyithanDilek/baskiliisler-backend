@@ -51,11 +51,23 @@ public class JwtService {
     }
 
     public String generateToken(User user) {
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .setSubject(user.getId().toString())
                 .claim("role", user.getRole().name())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
+
+        // FACTORY_USER ise factoryId claim'i ekle, diğerleri için dealerId
+        switch (user.getRole()) {
+            case FACTORY_USER:
+                builder.claim("factoryId", user.getFactory() != null ? user.getFactory().getId() : null);
+                break;
+            default:
+                builder.claim("dealerId", user.getDealer() != null ? user.getDealer().getId() : null);
+                break;
+        }
+
+        return builder
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

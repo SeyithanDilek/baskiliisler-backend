@@ -1,6 +1,7 @@
 package com.baskiliisler.backend.controller;
 
 import com.baskiliisler.backend.dto.DealerRequestDto;
+import com.baskiliisler.backend.dto.DealerUpdateDto;
 import com.baskiliisler.backend.dto.DealerResponseDto;
 import com.baskiliisler.backend.service.DealerService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,6 +46,12 @@ public class DealerController {
     @Operation(summary = "Bayi güncelle", description = "Belirtilen ID'ye sahip bayiyi günceller")
     public DealerResponseDto updateDealer(@PathVariable Long id, @RequestBody @Valid DealerRequestDto dto) {
         return dealerService.updateDealer(id, dto);
+    }
+    
+    @PatchMapping("/{id}")
+    @Operation(summary = "Bayi güncelle", description = "Belirtilen ID'ye sahip bayiyi günceller")
+    public DealerResponseDto updateDealerWithAdmin(@PathVariable Long id, @RequestBody @Valid DealerUpdateDto dto) {
+        return dealerService.updateDealerWithAdmin(id, dto);
     }
 
     @DeleteMapping("/{id}")

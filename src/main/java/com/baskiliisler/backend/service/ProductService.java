@@ -3,6 +3,7 @@ package com.baskiliisler.backend.service;
 import com.baskiliisler.backend.dto.ProductRequestDto;
 import com.baskiliisler.backend.dto.ProductResponseDto;
 import com.baskiliisler.backend.dto.ProductUpdateDto;
+import com.baskiliisler.backend.dto.MostOrderedProductResponse;
 import com.baskiliisler.backend.mapper.ProductMapper;
 import com.baskiliisler.backend.model.Product;
 import com.baskiliisler.backend.model.Dealer;
@@ -18,6 +19,7 @@ import com.baskiliisler.backend.config.SecurityUtil;
 import com.baskiliisler.backend.common.Role;
 
 import java.util.List;
+import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -54,20 +56,47 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public List<Product> getAllProducts() {
+    public List<Product> getAllProducts(Long dealerId) {
         User currentUser = getCurrentUser();
         
-        // SUPER_ADMIN tüm ürünleri görebilir
+        // dealerId parametresi verilmemişse, giriş yapan kullanıcının dealer'ını kullan
+        if (dealerId == null) {
+            if (currentUser.getRole() == Role.SUPER_ADMIN) {
+                // SUPER_ADMIN için dealer yoksa tüm ürünleri getir
+                if (currentUser.getDealer() == null) {
+                    return productRepository.findAll();
+                } else {
+                    // SUPER_ADMIN'in kendi dealer'ının ürünlerini getir
+                    return productRepository.findByDealer(currentUser.getDealer());
+                }
+            } else {
+                // Diğer roller için kullanıcının dealer'ı zorunlu
+                if (currentUser.getDealer() == null) {
+                    throw new IllegalStateException("Kullanıcının atanmış bir dealer'ı yok");
+                }
+                return productRepository.findByDealer(currentUser.getDealer());
+            }
+        }
+        
+        // dealerId parametresi verilmişse
         if (currentUser.getRole() == Role.SUPER_ADMIN) {
-            return productRepository.findAll();
+            // SUPER_ADMIN belirli dealer'ın ürünlerini görebilir
+            Dealer dealer = dealerRepository.findById(dealerId)
+                    .orElseThrow(() -> new EntityNotFoundException("Dealer bulunamadı"));
+            return productRepository.findByDealer(dealer);
+        } else {
+            // Diğer roller sadece kendi dealer'ının ürünlerini görebilir
+            if (currentUser.getDealer() == null) {
+                throw new IllegalStateException("Kullanıcının atanmış bir dealer'ı yok");
+            }
+            
+            // Verilen dealerId kullanıcının kendi dealer'ı değilse hata ver
+            if (!dealerId.equals(currentUser.getDealer().getId())) {
+                throw new IllegalStateException("Sadece kendi dealer'ınızın ürünlerini görüntüleyebilirsiniz");
+            }
+            
+            return productRepository.findByDealer(currentUser.getDealer());
         }
-        
-        // Diğer roller sadece kendi dealer'ının ürünlerini görebilir
-        if (currentUser.getDealer() == null) {
-            throw new IllegalStateException("Kullanıcının atanmış bir dealer'ı yok");
-        }
-        
-        return productRepository.findByDealer(currentUser.getDealer());
     }
 
     @Transactional(readOnly = true)
@@ -110,6 +139,96 @@ public class ProductService {
                 .orElseThrow(() -> new EntityNotFoundException("Ürün bulunamadı: " + id));
         product.setActive(true);
         productRepository.save(product);
+    }
+
+    public List<Product> getDealerProducts() {
+        User currentUser = getCurrentUser();
+        
+        if (currentUser.getRole() == Role.SUPER_ADMIN) {
+            // SUPER_ADMIN tüm ürünleri görebilir
+            return productRepository.findAll();
+        } else {
+            // DEALER_USER kendi dealer'ının ürünlerini görebilir
+            if (currentUser.getDealer() == null) {
+                throw new IllegalStateException("Kullanıcının atanmış bir dealer'ı yok");
+            }
+            return productRepository.findByDealer(currentUser.getDealer());
+        }
+    }
+
+    public List<Product> getProductsByDealer(Long dealerId) {
+        User currentUser = getCurrentUser();
+        
+        if (currentUser.getRole() == Role.SUPER_ADMIN) {
+            // SUPER_ADMIN belirli dealer'ın ürünlerini görebilir
+            Dealer dealer = dealerRepository.findById(dealerId)
+                    .orElseThrow(() -> new EntityNotFoundException("Dealer bulunamadı"));
+            return productRepository.findByDealer(dealer);
+        } else {
+            // DEALER_USER kendi dealer'ının ürünlerini görebilir
+            if (currentUser.getDealer() == null) {
+                throw new IllegalStateException("Kullanıcının atanmış bir dealer'ı yok");
+            }
+            return productRepository.findByDealer(currentUser.getDealer());
+        }
+    }
+
+    public MostOrderedProductResponse getMostOrderedProduct(Long dealerId) {
+        User currentUser = getCurrentUser();
+        
+        // dealerId parametresi verilmemişse, giriş yapan kullanıcının dealer'ını kullan
+        if (dealerId == null) {
+            if (currentUser.getRole() == Role.SUPER_ADMIN) {
+                // SUPER_ADMIN için dealer yoksa tüm sistemdeki en çok sipariş alan ürünü getir
+                if (currentUser.getDealer() == null) {
+                    List<MostOrderedProductResponse> results = productRepository.findMostOrderedProduct();
+                    return results.isEmpty() ? 
+                            new MostOrderedProductResponse(null, "Ürün bulunamadı", 0, BigDecimal.ZERO) :
+                            results.get(0);
+                } else {
+                    // SUPER_ADMIN'in kendi dealer'ının en çok sipariş alan ürününü getir
+                    List<MostOrderedProductResponse> results = productRepository.findMostOrderedProductByDealer(currentUser.getDealer());
+                    return results.isEmpty() ? 
+                            new MostOrderedProductResponse(null, "Ürün bulunamadı", 0, BigDecimal.ZERO) :
+                            results.get(0);
+                }
+            } else {
+                // Diğer roller için kullanıcının dealer'ı zorunlu
+                if (currentUser.getDealer() == null) {
+                    throw new IllegalStateException("Kullanıcının atanmış bir dealer'ı yok");
+                }
+                List<MostOrderedProductResponse> results = productRepository.findMostOrderedProductByDealer(currentUser.getDealer());
+                return results.isEmpty() ? 
+                        new MostOrderedProductResponse(null, "Ürün bulunamadı", 0, BigDecimal.ZERO) :
+                        results.get(0);
+            }
+        }
+        
+        // dealerId parametresi verilmişse
+        if (currentUser.getRole() == Role.SUPER_ADMIN) {
+            // SUPER_ADMIN belirli dealer'ın en çok sipariş alan ürününü görebilir
+            Dealer dealer = dealerRepository.findById(dealerId)
+                    .orElseThrow(() -> new EntityNotFoundException("Dealer bulunamadı"));
+            List<MostOrderedProductResponse> results = productRepository.findMostOrderedProductByDealer(dealer);
+            return results.isEmpty() ? 
+                    new MostOrderedProductResponse(null, "Ürün bulunamadı", 0, BigDecimal.ZERO) :
+                    results.get(0);
+        } else {
+            // Diğer roller sadece kendi dealer'ının en çok sipariş alan ürününü görebilir
+            if (currentUser.getDealer() == null) {
+                throw new IllegalStateException("Kullanıcının atanmış bir dealer'ı yok");
+            }
+            
+            // Verilen dealerId kullanıcının kendi dealer'ı değilse hata ver
+            if (!dealerId.equals(currentUser.getDealer().getId())) {
+                throw new IllegalStateException("Sadece kendi dealer'ınızın istatistiklerini görüntüleyebilirsiniz");
+            }
+            
+            List<MostOrderedProductResponse> results = productRepository.findMostOrderedProductByDealer(currentUser.getDealer());
+            return results.isEmpty() ? 
+                    new MostOrderedProductResponse(null, "Ürün bulunamadı", 0, BigDecimal.ZERO) :
+                    results.get(0);
+        }
     }
 
     private User getCurrentUser() {

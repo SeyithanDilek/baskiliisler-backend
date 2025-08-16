@@ -75,6 +75,7 @@ class BrandServiceTest {
         Dealer testDealer = Dealer.builder()
                 .id(1L)
                 .name("Test Dealer")
+                .active(true)
                 .build();
 
         testBrandRequest = new BrandRequestDto(
@@ -101,6 +102,7 @@ class BrandServiceTest {
                 .contactPhone(testBrandRequest.contactPhone())
                 .logoUrl(testBrandRequest.logoUrl())
                 .assignedUser(testUser)
+                .dealer(testDealer)
                 .build();
     }
 
@@ -206,7 +208,7 @@ class BrandServiceTest {
                 when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
                 // when
-                List<Brand> result = brandService.getAllBrands();
+                List<Brand> result = brandService.getAllBrands(null);
 
                 // then
                 assertThat(result)
@@ -227,7 +229,7 @@ class BrandServiceTest {
                 when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
                 // when
-                List<Brand> result = brandService.getAllBrands();
+                List<Brand> result = brandService.getAllBrands(null);
 
                 // then
                 assertThat(result).isEmpty();
@@ -250,14 +252,20 @@ class BrandServiceTest {
             when(brandRepository.findById(brandId)).thenReturn(Optional.of(testBrand));
             when(brandProcessService.getProcessStatus(brandId)).thenReturn(ProcessStatus.SAMPLE_LEFT);
 
-            // when
-            BrandDetailDto result = brandService.findById(brandId);
+            // Mock SecurityUtil
+            try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
+                mockedSecurityUtil.when(SecurityUtil::currentUserId).thenReturn(1L);
+                when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
-            // then
-            assertThat(result).isNotNull();
-            assertThat(result.id()).isEqualTo(testBrand.getId());
-            assertThat(result.name()).isEqualTo(testBrand.getName());
-            assertThat(result.status()).isEqualTo(ProcessStatus.SAMPLE_LEFT);
+                // when
+                BrandDetailDto result = brandService.findById(brandId);
+
+                // then
+                assertThat(result).isNotNull();
+                assertThat(result.id()).isEqualTo(testBrand.getId());
+                assertThat(result.name()).isEqualTo(testBrand.getName());
+                assertThat(result.status()).isEqualTo(ProcessStatus.SAMPLE_LEFT);
+            }
         }
 
         @Test
@@ -288,22 +296,29 @@ class BrandServiceTest {
                     "updated@test.com",
                     "9876543210",
                     "9876543210", // taxNumber
-                    "https://example.com/updated-logo.png"
+                    "https://example.com/updated-logo.png",
+                    null
             );
 
             when(brandRepository.findById(brandId)).thenReturn(Optional.of(testBrand));
             when(brandRepository.findByName(updateDto.name())).thenReturn(Optional.empty());
             when(brandProcessService.getProcessStatus(brandId)).thenReturn(ProcessStatus.SAMPLE_LEFT);
 
-            // when
-            BrandDetailDto result = brandService.updateBrand(brandId, updateDto);
+            // Mock SecurityUtil
+            try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
+                mockedSecurityUtil.when(SecurityUtil::currentUserId).thenReturn(1L);
+                when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
-            // then
-            assertThat(result).isNotNull();
-            assertThat(result.name()).isEqualTo(updateDto.name());
-            assertThat(result.contactEmail()).isEqualTo(updateDto.contactEmail());
-            assertThat(result.contactPhone()).isEqualTo(updateDto.contactPhone());
-            assertThat(result.status()).isEqualTo(ProcessStatus.SAMPLE_LEFT);
+                // when
+                BrandDetailDto result = brandService.updateBrand(brandId, updateDto);
+
+                // then
+                assertThat(result).isNotNull();
+                assertThat(result.name()).isEqualTo(updateDto.name());
+                assertThat(result.contactEmail()).isEqualTo(updateDto.contactEmail());
+                assertThat(result.contactPhone()).isEqualTo(updateDto.contactPhone());
+                assertThat(result.status()).isEqualTo(ProcessStatus.SAMPLE_LEFT);
+            }
         }
 
         @Test
@@ -312,16 +327,22 @@ class BrandServiceTest {
             // given
             Long brandId = 1L;
             String existingName = "Existing Brand";
-            BrandUpdateDto updateDto = new BrandUpdateDto(existingName, null, null, null, null);
+            BrandUpdateDto updateDto = new BrandUpdateDto(existingName, null, null, null, null, null);
             Brand existingBrand = Brand.builder().name(existingName).build();
 
             when(brandRepository.findById(brandId)).thenReturn(Optional.of(testBrand));
             when(brandRepository.findByName(existingName)).thenReturn(Optional.of(existingBrand));
 
-            // when & then
-            assertThatThrownBy(() -> brandService.updateBrand(brandId, updateDto))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Bu isim zaten kullanımda");
+            // Mock SecurityUtil
+            try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
+                mockedSecurityUtil.when(SecurityUtil::currentUserId).thenReturn(1L);
+                when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+                // when & then
+                assertThatThrownBy(() -> brandService.updateBrand(brandId, updateDto))
+                        .isInstanceOf(IllegalArgumentException.class)
+                        .hasMessageContaining("Bu isim zaten kullanımda");
+            }
         }
 
         @Test
@@ -334,7 +355,8 @@ class BrandServiceTest {
                     "invalid-email",
                     "9876543210",
                     "9876543210", // taxNumber
-                    "https://example.com/logo.png"
+                    "https://example.com/logo.png",
+                    null
             );
 
             // when & then
@@ -361,13 +383,19 @@ class BrandServiceTest {
             when(brandProcessService.getProcessStatus(brandId)).thenReturn(ProcessStatus.SAMPLE_LEFT);
             when(brandProcessService.getBrandProcess(brandId)).thenReturn(brandProcess);
 
-            // when
-            brandService.deleteBrand(brandId);
+            // Mock SecurityUtil
+            try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
+                mockedSecurityUtil.when(SecurityUtil::currentUserId).thenReturn(1L);
+                when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
-            // then
-            verify(brandProcessHistoryService).deleteProcessHistoryByProcessId(10L);
-            verify(brandProcessService).deleteBrandProcess(brandId);
-            verify(brandRepository).deleteById(brandId);
+                // when
+                brandService.deleteBrand(brandId);
+
+                // then
+                verify(brandProcessHistoryService).deleteProcessHistoryByProcessId(10L);
+                verify(brandProcessService).deleteBrandProcess(brandId);
+                verify(brandRepository).deleteById(brandId);
+            }
         }
 
         @Test
@@ -381,12 +409,18 @@ class BrandServiceTest {
             when(brandProcessService.existsBrandProcess(brandId)).thenReturn(true);
             when(brandProcessService.getProcessStatus(brandId)).thenReturn(ProcessStatus.INIT);
 
-            // when & then
-            assertThatThrownBy(() -> brandService.deleteBrand(brandId))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("Marka sadece numune bırakıldı (SAMPLE_LEFT) durumunda silinebilir");
+            // Mock SecurityUtil
+            try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
+                mockedSecurityUtil.when(SecurityUtil::currentUserId).thenReturn(1L);
+                when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
-            verify(brandRepository, never()).deleteById(any());
+                // when & then
+                assertThatThrownBy(() -> brandService.deleteBrand(brandId))
+                        .isInstanceOf(IllegalStateException.class)
+                        .hasMessageContaining("Marka sadece numune bırakıldı (SAMPLE_LEFT) durumunda silinebilir");
+
+                verify(brandRepository, never()).deleteById(any());
+            }
         }
 
         @Test
@@ -400,12 +434,18 @@ class BrandServiceTest {
             when(brandProcessService.existsBrandProcess(brandId)).thenReturn(true);
             when(brandProcessService.getProcessStatus(brandId)).thenReturn(null);
 
-            // when & then
-            assertThatThrownBy(() -> brandService.deleteBrand(brandId))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("Brand process durumu belirlenemedi");
+            // Mock SecurityUtil
+            try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
+                mockedSecurityUtil.when(SecurityUtil::currentUserId).thenReturn(1L);
+                when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
-            verify(brandRepository, never()).deleteById(any());
+                // when & then
+                assertThatThrownBy(() -> brandService.deleteBrand(brandId))
+                        .isInstanceOf(IllegalStateException.class)
+                        .hasMessageContaining("Brand process durumu belirlenemedi");
+
+                verify(brandRepository, never()).deleteById(any());
+            }
         }
 
         @Test
@@ -418,13 +458,19 @@ class BrandServiceTest {
             when(brandRepository.findById(brandId)).thenReturn(Optional.of(brand));
             when(brandProcessService.existsBrandProcess(brandId)).thenReturn(false);
 
-            // when
-            brandService.deleteBrand(brandId);
+            // Mock SecurityUtil
+            try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
+                mockedSecurityUtil.when(SecurityUtil::currentUserId).thenReturn(1L);
+                when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
-            // then
-            verify(brandRepository).deleteById(brandId);
-            verify(brandProcessHistoryService, never()).deleteProcessHistoryByProcessId(any());
-            verify(brandProcessService, never()).deleteBrandProcess(any());
+                // when
+                brandService.deleteBrand(brandId);
+
+                // then
+                verify(brandRepository).deleteById(brandId);
+                verify(brandProcessHistoryService, never()).deleteProcessHistoryByProcessId(any());
+                verify(brandProcessService, never()).deleteBrandProcess(any());
+            }
         }
 
         @Test

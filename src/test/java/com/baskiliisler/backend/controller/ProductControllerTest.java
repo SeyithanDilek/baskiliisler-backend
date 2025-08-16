@@ -144,7 +144,7 @@ class ProductControllerTest {
         @DisplayName("Tüm ürünler listelendiğinde 200 OK döndürmeli")
         void whenGetAllProducts_thenShouldReturn200() throws Exception {
             // Given
-            when(productService.getAllProducts()).thenReturn(List.of(testProduct));
+            when(productService.getAllProducts(null)).thenReturn(List.of(testProduct));
 
             // When & Then
             mockMvc.perform(get("/products"))
@@ -154,7 +154,7 @@ class ProductControllerTest {
                     .andExpect(jsonPath("$[0].name").value(testProduct.getName()))
                     .andExpect(jsonPath("$[0].description").value(testProduct.getDescription()));
 
-            verify(productService).getAllProducts();
+            verify(productService).getAllProducts(null);
         }
 
         @Test

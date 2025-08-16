@@ -1,5 +1,6 @@
 package com.baskiliisler.backend.service;
 
+import com.baskiliisler.backend.dto.FactoryCreateDto;
 import com.baskiliisler.backend.dto.FactoryRequestDto;
 import com.baskiliisler.backend.dto.FactoryResponseDto;
 import com.baskiliisler.backend.model.Factory;
@@ -122,7 +123,18 @@ class FactoryServiceTest {
         when(userService.createUser(any(), any())).thenReturn(null);  // UserService mock
 
         // when
-        Factory result = factoryService.create(dto);
+        Factory result = factoryService.createWithUser(new FactoryCreateDto(
+                new FactoryCreateDto.FactoryInfo(
+                        dto.name(),
+                        dto.address(),
+                        dto.factoryNumber()
+                ),
+                new FactoryCreateDto.UserInfo(
+                        dto.name() + " Kullanıcısı",
+                        dto.userEmail(),
+                        "+90 555 000 00 00"
+                )
+        ));
 
         // then
         assertThat(result).isNotNull();
@@ -138,7 +150,6 @@ class FactoryServiceTest {
         Factory capturedFactory = factoryCaptor.getValue();
         assertThat(capturedFactory.getName()).isEqualTo("New Factory");
         assertThat(capturedFactory.getAddress()).isEqualTo("New Address");
-        assertThat(capturedFactory.getPhoneNumber()).isEqualTo("+90 555 999 88 77");
         assertThat(capturedFactory.isActive()).isTrue();
     }
 

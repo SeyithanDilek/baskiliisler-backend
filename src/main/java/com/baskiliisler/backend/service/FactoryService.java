@@ -1,12 +1,17 @@
 package com.baskiliisler.backend.service;
 
 import com.baskiliisler.backend.common.Role;
+import com.baskiliisler.backend.dto.FactoryCreateDto;
 import com.baskiliisler.backend.dto.FactoryRequestDto;
 import com.baskiliisler.backend.dto.FactoryResponseDto;
 import com.baskiliisler.backend.dto.UserCreateDto;
 import com.baskiliisler.backend.mapper.FactoryMapper;
 import com.baskiliisler.backend.model.Factory;
+import com.baskiliisler.backend.model.User;
+import com.baskiliisler.backend.model.Dealer;
 import com.baskiliisler.backend.repository.FactoryRepository;
+import com.baskiliisler.backend.repository.DealerRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,24 +36,34 @@ public class FactoryService {
                 .orElseThrow(() -> new IllegalArgumentException("Factory not found with name: " + factoryName));
     }
 
+
+
     @Transactional
-    public Factory create(FactoryRequestDto dto) {
-        // 1. Önce kullanıcı oluşturmayı dene (eğer hata varsa hiçbir şey kaydedilmez)
-        UserCreateDto userCreateDto = UserCreateDto.builder()
-                .name(dto.name() + " Kullanıcısı")  // Fabrika adı + "Kullanıcısı"
-                .email(dto.userEmail())
-                .phoneNumber("+90 555 000 00 00")  // Varsayılan telefon
+    public Factory createWithUser(FactoryCreateDto dto) {
+        // 1. Önce fabrikayı oluştur
+        Factory factory = Factory.builder()
+                .name(dto.factory().name())
+                .address(dto.factory().address())
+                .factoryNumber(dto.factory().factoryNumber())
+                .active(true)
                 .build();
         
-        // Kullanıcı oluşturma işlemi (hata varsa exception fırlatır ve hiçbir şey kaydedilmez)
+        Factory savedFactory = factoryRepository.save(factory);
+        log.info("Fabrika oluşturuldu: {} (ID: {})", savedFactory.getName(), savedFactory.getId());
+        
+        // 2. Fabrika kullanıcısını oluştur
+        UserCreateDto userCreateDto = UserCreateDto.builder()
+                .name(dto.user().name())
+                .email(dto.user().email())
+                .phoneNumber(dto.user().phoneNumber())
+                .factoryId(savedFactory.getId()) // Oluşturulan factory'nin ID'sini set et
+                .build();
+        
+        // Kullanıcı oluşturma işlemi (hata varsa exception fırlatır ve rollback olur)
         userService.createUser(userCreateDto, Role.FACTORY_USER);
-        log.info("Fabrika kullanıcısı oluşturuldu: {} (Fabrika: {})", dto.userEmail(), dto.name());
+        log.info("Fabrika kullanıcısı oluşturuldu: {} (Fabrika: {})", dto.user().email(), savedFactory.getName());
         
-        // 2. Kullanıcı başarıyla oluşturulduysa fabrikayı oluştur
-        Factory factory = factoryRepository.save(FactoryMapper.toEntity(dto));
-        log.info("Fabrika oluşturuldu: {} (ID: {})", factory.getName(), factory.getId());
-        
-        return factory;
+        return savedFactory;
     }
 
     @Transactional

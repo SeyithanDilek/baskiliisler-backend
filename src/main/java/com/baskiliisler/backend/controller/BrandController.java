@@ -36,11 +36,13 @@ public class BrandController {
     }
 
     @GetMapping
-    public List<BrandResponseDto> getAllBrands() {
-        return brandService.getAllBrands().stream()
+    public List<BrandResponseDto> getAllBrands(@RequestParam(required = false) Long dealerId) {
+        return brandService.getAllBrands(dealerId).stream()
                 .map(BrandMapper::toDto)
                 .collect(toList());
     }
+
+
 
     @GetMapping("/{id}")
     public BrandDetailDto getById(@PathVariable Long id) {
@@ -64,7 +66,7 @@ public class BrandController {
                                                        @RequestParam("file") MultipartFile file) {
         try {
             String logoUrl = cloudinaryService.uploadImage(file);
-            BrandUpdateDto updateDto = new BrandUpdateDto(null, null, null, null, logoUrl);
+            BrandUpdateDto updateDto = new BrandUpdateDto(null, null, null, null, logoUrl, null);
             brandService.updateBrand(id, updateDto);
             Brand brand = brandService.getBrandById(id);
             return ResponseEntity.ok(BrandMapper.toDto(brand));

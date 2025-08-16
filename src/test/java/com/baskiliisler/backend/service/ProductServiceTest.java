@@ -76,6 +76,7 @@ class ProductServiceTest {
                 .unitPrice(new BigDecimal("2.50"))
                 .taxRate(new BigDecimal("18.00"))
                 .active(true)
+                .dealer(testDealer)
                 .build();
 
         testProductRequestDto = new ProductRequestDto(
@@ -137,21 +138,21 @@ class ProductServiceTest {
         @DisplayName("Tüm ürünler listelendiğinde başarılı olmalı")
         void whenGetAllProducts_thenShouldReturnAllProducts() {
             // Given
-            when(productRepository.findAll()).thenReturn(List.of(testProduct));
+            when(productRepository.findByDealer(testUser.getDealer())).thenReturn(List.of(testProduct));
             
             try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
                 mockedSecurityUtil.when(SecurityUtil::currentUserId).thenReturn(1L);
                 when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
                 // When
-                List<Product> result = productService.getAllProducts();
+                List<Product> result = productService.getAllProducts(null);
 
                 // Then
                 assertThat(result).isNotEmpty();
                 assertThat(result).hasSize(1);
                 assertThat(result.get(0).getName()).isEqualTo(testProduct.getName());
 
-                verify(productRepository).findAll();
+                verify(productRepository).findByDealer(testUser.getDealer());
             }
         }
 
