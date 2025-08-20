@@ -57,6 +57,9 @@ class BrandServiceTest {
     private com.baskiliisler.backend.notification.service.NotificationService notificationService;
 
     @Mock
+    private EmailService emailService;
+
+    @Mock
     private SecurityContext securityContext;
 
     @Mock
@@ -131,6 +134,11 @@ class BrandServiceTest {
                     anyString()
             );
 
+            // Mock EmailService
+            doNothing().when(emailService).sendNewCustomerWelcomeEmail(
+                    anyString(), anyString(), anyString()
+            );
+
             // Mock SecurityUtil
             try (MockedStatic<SecurityUtil> mockedSecurityUtil = mockStatic(SecurityUtil.class)) {
                 mockedSecurityUtil.when(SecurityUtil::currentUserId).thenReturn(1L);
@@ -153,6 +161,11 @@ class BrandServiceTest {
                     eq(ProcessStatus.INIT),
                     isNull(),
                     anyString()
+            );
+            verify(emailService).sendNewCustomerWelcomeEmail(
+                    eq(testBrandRequest.contactEmail()),
+                    eq(testBrandRequest.name()),
+                    eq(testBrandRequest.name())
             );
             }
         }

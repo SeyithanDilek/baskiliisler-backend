@@ -69,4 +69,8 @@ public interface QuoteRepository extends JpaRepository<Quote, Long> {
     
     @Query("SELECT COUNT(q), COALESCE(SUM(q.totalPrice), 0) FROM Quote q WHERE q.brand.assignedUser = :user AND q.status = :status")
     Object[] countAndSumByBrandAssignedUserAndStatus(@Param("user") User user, @Param("status") QuoteStatus status);
+    
+    // Teklif hatırlatma için - belirli tarihte süresi dolacak teklifleri bul
+    @Query("SELECT q FROM Quote q WHERE q.status = :status AND q.validUntil = :validUntil")
+    List<Quote> findByStatusAndValidUntil(@Param("status") QuoteStatus status, @Param("validUntil") LocalDate validUntil);
 }

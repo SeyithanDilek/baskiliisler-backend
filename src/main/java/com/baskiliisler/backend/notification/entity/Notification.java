@@ -30,21 +30,24 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private NotificationPriority priority = NotificationPriority.NORMAL;
+    private NotificationPriority priority = NotificationPriority.LOW;
     
     @Column(nullable = false, length = 200)
     private String title;
     
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = 1000)
     private String message;
     
-    @Column(name = "deep_link_url", nullable = false, length = 200)
-    private String deepLinkUrl;
+    @Column(name = "target_user_id", nullable = false)
+    private Long targetUserId;
     
-    @Column(name = "entity_type", nullable = false, length = 20)
+    @Column(name = "factory_id")
+    private Long factoryId;
+    
+    @Column(name = "entity_type", length = 50)
     private String entityType;
     
-    @Column(name = "entity_id", nullable = false)
+    @Column(name = "entity_id")
     private Long entityId;
     
     @Column(name = "is_read", nullable = false)
@@ -58,6 +61,9 @@ public class Notification {
     @Column(name = "read_at")
     private LocalDateTime readAt;
     
+    @Column(name = "metadata", columnDefinition = "TEXT")
+    private String metadata;
+    
     // Helper methods
     public void markAsRead() {
         this.isRead = true;
@@ -68,7 +74,15 @@ public class Notification {
         return this.priority == NotificationPriority.CRITICAL;
     }
     
-    public boolean isImportant() {
-        return this.priority == NotificationPriority.IMPORTANT;
+    public boolean isHigh() {
+        return this.priority == NotificationPriority.HIGH;
+    }
+    
+    public boolean isMedium() {
+        return this.priority == NotificationPriority.MEDIUM;
+    }
+    
+    public boolean isLow() {
+        return this.priority == NotificationPriority.LOW;
     }
 } 

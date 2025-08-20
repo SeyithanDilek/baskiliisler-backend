@@ -10,6 +10,10 @@ import com.baskiliisler.backend.repository.OrderRepository;
 import com.baskiliisler.backend.type.OrderStatus;
 import com.baskiliisler.backend.type.ProcessStatus;
 import com.baskiliisler.backend.notification.service.NotificationService;
+import com.baskiliisler.backend.service.EmailService;
+import com.baskiliisler.backend.dto.NotificationRequest;
+import com.baskiliisler.backend.notification.type.NotificationType;
+import com.baskiliisler.backend.notification.type.NotificationPriority;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +42,7 @@ public class OrderService {
     private final UserService userService;
     private final BrandRepository brandRepository;
     private final DealerRepository dealerRepository;
+    private final EmailService emailService;
 
     @Transactional
     public Order createOrderFromQuote(Quote quote,
@@ -65,12 +70,42 @@ public class OrderService {
 
         orderItemService.assembleAndSaveOrderItems(quote, deadlines, order);
         
-        // Notification gönder - hata durumunda ana işlem devam etsin
+        // Bildirimler gönder - hata durumunda ana işlem devam etsin
         try {
-            notificationService.notifyNewOrder(order);
-            notificationService.notifyFactoryAssignmentNeeded(order);
+            // Super admin'lere yeni sipariş bildirimi
+            notificationService.notifyUsersByRole(Role.SUPER_ADMIN, 
+                NotificationRequest.builder()
+                    .type(NotificationType.NEW_ORDER)
+                    .priority(NotificationPriority.MEDIUM)
+                    .title("Yeni Sipariş Oluşturuldu")
+                    .message(String.format("'%s' markası için %s TL tutarında sipariş oluşturuldu", 
+                        order.getQuote().getBrand().getName(), 
+                        order.getTotalPrice()))
+                    .entityType("ORDER")
+                    .entityId(order.getId())
+                    .build());
+            
+            // Super admin'lere fabrika atama gerekli bildirimi
+            notificationService.notifyUsersByRole(Role.SUPER_ADMIN, 
+                NotificationRequest.builder()
+                    .type(NotificationType.FACTORY_ASSIGNMENT_NEEDED)
+                    .priority(NotificationPriority.CRITICAL)
+                    .title("Fabrika Atama Gerekli")
+                    .message(String.format("'%s' markası siparişi fabrika atama bekliyor. Tutar: %s TL", 
+                        order.getQuote().getBrand().getName(), 
+                        order.getTotalPrice()))
+                    .entityType("ORDER")
+                    .entityId(order.getId())
+                    .build());
         } catch (Exception e) {
             log.warn("Notification gönderilirken hata oluştu: {}", e.getMessage());
+        }
+        
+        // Fabrika atama gerekli maili gönder - hata durumunda ana işlem devam etsin
+        try {
+            emailService.sendFactoryAssignmentNeededEmail(order);
+        } catch (Exception e) {
+            log.warn("Fabrika atama gerekli maili gönderilirken hata oluştu: {}", e.getMessage());
         }
         
         return order;
@@ -251,6 +286,13 @@ public class OrderService {
         // Eğer DELIVERED durumuna geçiyorsa deliveredAt'i set et
         if (newStatus == OrderStatus.DELIVERED && oldStatus != OrderStatus.DELIVERED) {
             order.setDeliveredAt(LocalDateTime.now());
+            
+            // Sipariş teslim edildi maili gönder - hata durumunda ana işlem devam etsin
+            try {
+                emailService.sendOrderDeliveredEmail(order);
+            } catch (Exception e) {
+                log.warn("Sipariş teslim edildi maili gönderilirken hata oluştu: {}", e.getMessage());
+            }
         }
 
         // Log status değişikliği
@@ -332,6 +374,13 @@ public class OrderService {
         
         order.setStatus(OrderStatus.CANCELLED);
         order.setUpdatedAt(LocalDateTime.now());
+        
+        // Sipariş iptal edildi maili gönder - hata durumunda ana işlem devam etsin
+        try {
+            emailService.sendOrderCancelledEmail(order);
+        } catch (Exception e) {
+            log.warn("Sipariş iptal edildi maili gönderilirken hata oluştu: {}", e.getMessage());
+        }
         
         return orderRepository.save(order);
     }

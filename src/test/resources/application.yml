@@ -29,4 +29,6 @@ jwt:
   expiration: 30m
 
 app:
+  login-url: http://localhost:3000/login
   reset-password-url: http://localhost:3000/reset-password
+  website-url: https://baskiliisler.com/

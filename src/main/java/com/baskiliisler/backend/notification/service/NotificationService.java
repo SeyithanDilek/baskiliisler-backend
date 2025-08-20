@@ -1,251 +1,231 @@
 package com.baskiliisler.backend.notification.service;
 
-import com.baskiliisler.backend.model.Order;
-import com.baskiliisler.backend.model.Quote;
-import com.baskiliisler.backend.model.Brand;
+import com.baskiliisler.backend.common.Role;
+import com.baskiliisler.backend.dto.NotificationRequest;
+import com.baskiliisler.backend.dto.NotificationResponseDto;
 import com.baskiliisler.backend.notification.entity.Notification;
 import com.baskiliisler.backend.notification.repository.NotificationRepository;
-import com.baskiliisler.backend.notification.type.NotificationType;
-import com.baskiliisler.backend.notification.type.NotificationPriority;
+import com.baskiliisler.backend.repository.UserRepository;
+import com.baskiliisler.backend.model.User;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class NotificationService {
-    
+
     private final NotificationRepository notificationRepository;
-    
-    // ================================
-    // ASYNC NOTIFICATION CREATORS
-    // ================================
-    
-    @Async("notificationExecutor")
-    public void notifyNewOrder(Order order) {
-        log.info("Creating notification for new order: {}", order.getId());
-        
-        Notification notification = Notification.builder()
-                .type(NotificationType.NEW_ORDER)
-                .priority(calculateOrderPriority(order))
-                .title("Yeni Sipariş Alındı")
-                .message(generateOrderMessage(order))
-                .deepLinkUrl(NotificationType.NEW_ORDER.buildDeepLinkUrl(order.getId()))
-                .entityType("ORDER")
-                .entityId(order.getId())
-                .build();
-        
-        notificationRepository.save(notification);
-        log.info("Notification created for order: {}", order.getId());
-    }
-    
-    @Async("notificationExecutor")
-    public void notifyQuoteAccepted(Quote quote, Order order) {
-        log.info("Creating notification for quote accepted: {}", quote.getId());
-        
-        Notification notification = Notification.builder()
-                .type(NotificationType.QUOTE_ACCEPTED)
-                .priority(NotificationPriority.IMPORTANT)
-                .title("Teklif Kabul Edildi")
-                .message(generateQuoteAcceptedMessage(quote, order))
-                .deepLinkUrl(NotificationType.QUOTE_ACCEPTED.buildDeepLinkUrl(order.getId()))
-                .entityType("ORDER")
-                .entityId(order.getId())
-                .build();
-        
-        notificationRepository.save(notification);
-        log.info("Notification created for quote accepted: {}", quote.getId());
-    }
-    
-    @Async("notificationExecutor")
-    public void notifyNewQuote(Quote quote) {
-        log.info("Creating notification for new quote: {}", quote.getId());
-        
-        Notification notification = Notification.builder()
-                .type(NotificationType.NEW_QUOTE)
-                .priority(NotificationPriority.NORMAL)
-                .title("Yeni Teklif Oluşturuldu")
-                .message(generateNewQuoteMessage(quote))
-                .deepLinkUrl(NotificationType.NEW_QUOTE.buildDeepLinkUrl(quote.getId()))
-                .entityType("QUOTE")
-                .entityId(quote.getId())
-                .build();
-        
-        notificationRepository.save(notification);
-        log.info("Notification created for new quote: {}", quote.getId());
-    }
-    
-    @Async("notificationExecutor")
-    public void notifyNewBrand(Brand brand) {
-        log.info("Creating notification for new brand: {}", brand.getId());
-        
-        Notification notification = Notification.builder()
-                .type(NotificationType.NEW_BRAND)
-                .priority(NotificationPriority.NORMAL)
-                .title("Yeni Marka Kaydı")
-                .message(generateNewBrandMessage(brand))
-                .deepLinkUrl(NotificationType.NEW_BRAND.buildDeepLinkUrl(brand.getId()))
-                .entityType("BRAND")
-                .entityId(brand.getId())
-                .build();
-        
-        notificationRepository.save(notification);
-        log.info("Notification created for new brand: {}", brand.getId());
-    }
-    
-    @Async("notificationExecutor")
-    public void notifyDeadlineApproaching(Order order) {
-        log.info("Creating notification for deadline approaching: {}", order.getId());
-        
-        Notification notification = Notification.builder()
-                .type(NotificationType.DEADLINE_APPROACHING)
-                .priority(NotificationPriority.IMPORTANT)
-                .title("Deadline Yaklaşıyor")
-                .message(generateDeadlineApproachingMessage(order))
-                .deepLinkUrl(NotificationType.DEADLINE_APPROACHING.buildDeepLinkUrl(order.getId()))
-                .entityType("ORDER")
-                .entityId(order.getId())
-                .build();
-        
-        notificationRepository.save(notification);
-        log.info("Notification created for deadline approaching: {}", order.getId());
-    }
-    
-    @Async("notificationExecutor")
-    public void notifyDeadlineExceeded(Order order) {
-        log.info("Creating notification for deadline exceeded: {}", order.getId());
-        
-        Notification notification = Notification.builder()
-                .type(NotificationType.DEADLINE_EXCEEDED)
-                .priority(NotificationPriority.CRITICAL)
-                .title("Deadline Geçti!")
-                .message(generateDeadlineExceededMessage(order))
-                .deepLinkUrl(NotificationType.DEADLINE_EXCEEDED.buildDeepLinkUrl(order.getId()))
-                .entityType("ORDER")
-                .entityId(order.getId())
-                .build();
-        
-        notificationRepository.save(notification);
-        log.info("Notification created for deadline exceeded: {}", order.getId());
-    }
-    
-    @Async("notificationExecutor")
-    public void notifyFactoryAssignmentNeeded(Order order) {
-        log.info("Creating notification for factory assignment needed: {}", order.getId());
-        
-        Notification notification = Notification.builder()
-                .type(NotificationType.FACTORY_ASSIGNMENT_NEEDED)
-                .priority(NotificationPriority.CRITICAL)
-                .title("Fabrika Atama Gerekli")
-                .message(generateFactoryAssignmentMessage(order))
-                .deepLinkUrl(NotificationType.FACTORY_ASSIGNMENT_NEEDED.buildDeepLinkUrl(order.getId()))
-                .entityType("ORDER")
-                .entityId(order.getId())
-                .build();
-        
-        notificationRepository.save(notification);
-        log.info("Notification created for factory assignment needed: {}", order.getId());
-    }
-    
-    // ================================
-    // NOTIFICATION MANAGEMENT - GLOBAL
-    // ================================
-    
-    @Transactional(readOnly = true)
-    public List<Notification> getUnreadNotifications() {
-        return notificationRepository.findByIsReadFalseOrderByCreatedAtDesc();
-    }
-    
-    @Transactional(readOnly = true)
-    public List<Notification> getAllNotifications() {
-        return notificationRepository.findAllByOrderByCreatedAtDesc();
-    }
-    
-    @Transactional(readOnly = true)
-    public long getUnreadCount() {
-        return notificationRepository.countByIsReadFalse();
-    }
-    
+    private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
+
+    /**
+     * Generic bildirim oluşturma
+     */
     @Transactional
-    public void markAsRead(Long notificationId) {
-        Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new IllegalArgumentException("Notification not found"));
-        
-        notification.markAsRead();
-        notificationRepository.save(notification);
+    public Notification createNotification(NotificationRequest request) {
+        try {
+            Notification notification = Notification.builder()
+                    .type(request.getType())
+                    .priority(request.getPriority())
+                    .title(request.getTitle())
+                    .message(request.getMessage())
+                    .targetUserId(request.getTargetUserId())
+                    .factoryId(request.getFactoryId())
+                    .entityType(request.getEntityType())
+                    .entityId(request.getEntityId())
+                    .metadata(serializeMetadata(request.getMetadata()))
+                    .build();
+
+            Notification savedNotification = notificationRepository.save(notification);
+            log.info("Bildirim oluşturuldu: {} - {}", savedNotification.getId(), savedNotification.getTitle());
+            return savedNotification;
+        } catch (Exception e) {
+            log.error("Bildirim oluşturulurken hata: {}", e.getMessage(), e);
+            // Bildirim oluşturulamazsa sistem akışını etkileme
+            return null;
+        }
     }
-    
+
+    /**
+     * Role bazlı bildirim gönderme
+     */
     @Transactional
-    public void markAllAsRead() {
-        notificationRepository.markAllAsRead(LocalDateTime.now());
-    }
-    
-    // ================================
-    // HELPER METHODS
-    // ================================
-    
-    private NotificationPriority calculateOrderPriority(Order order) {
-        // Büyük tutar siparişleri critical
-        if (order.getTotalPrice().compareTo(BigDecimal.valueOf(50000)) > 0) {
-            return NotificationPriority.CRITICAL;
+    public void notifyUsersByRole(Role role, NotificationRequest request) {
+        try {
+            List<User> users = userRepository.findByRole(role);
+            for (User user : users) {
+                NotificationRequest userRequest = NotificationRequest.builder()
+                        .type(request.getType())
+                        .priority(request.getPriority())
+                        .title(request.getTitle())
+                        .message(request.getMessage())
+                        .targetUserId(user.getId())
+                        .factoryId(request.getFactoryId())
+                        .entityType(request.getEntityType())
+                        .entityId(request.getEntityId())
+                        .metadata(request.getMetadata())
+                        .build();
+                
+                createNotification(userRequest);
+            }
+            log.info("{} rolündeki {} kullanıcıya bildirim gönderildi", role, users.size());
+        } catch (Exception e) {
+            log.error("Role bazlı bildirim gönderilirken hata: {}", e.getMessage(), e);
+            // Bildirim gönderilemezse sistem akışını etkileme
         }
-        
-        // Deadline yakınsa important
-        if (order.getDeadline() != null && 
-            order.getDeadline().isBefore(LocalDate.now().plusDays(3))) {
-            return NotificationPriority.IMPORTANT;
+    }
+
+    /**
+     * Fabrika bazlı bildirim gönderme
+     */
+    @Transactional
+    public void notifyFactoryUsers(Long factoryId, NotificationRequest request) {
+        try {
+            List<User> factoryUsers = userRepository.findByRoleAndFactoryId(Role.FACTORY_USER, factoryId);
+            for (User user : factoryUsers) {
+                NotificationRequest userRequest = NotificationRequest.builder()
+                        .type(request.getType())
+                        .priority(request.getPriority())
+                        .title(request.getTitle())
+                        .message(request.getMessage())
+                        .targetUserId(user.getId())
+                        .factoryId(factoryId)
+                        .entityType(request.getEntityType())
+                        .entityId(request.getEntityId())
+                        .metadata(request.getMetadata())
+                        .build();
+                
+                createNotification(userRequest);
+            }
+            log.info("Fabrika {} için {} kullanıcıya bildirim gönderildi", factoryId, factoryUsers.size());
+        } catch (Exception e) {
+            log.error("Fabrika bazlı bildirim gönderilirken hata: {}", e.getMessage(), e);
+            // Bildirim gönderilemezse sistem akışını etkileme
         }
-        
-        return NotificationPriority.NORMAL;
     }
-    
-    private String generateOrderMessage(Order order) {
-        return String.format("%s markası - %s TL - %s", 
-                order.getQuote().getBrand().getName(),
-                order.getTotalPrice(),
-                order.getDeadline() != null ? 
-                    "Deadline: " + order.getDeadline().toString() : 
-                    "Deadline belirlenmedi");
+
+    /**
+     * Bildirim okundu olarak işaretleme
+     */
+    @Transactional
+    public void markAsRead(Long notificationId, Long userId) {
+        try {
+            notificationRepository.findByIdAndTargetUserId(notificationId, userId)
+                    .ifPresent(notification -> {
+                        notification.markAsRead();
+                        notificationRepository.save(notification);
+                        log.info("Bildirim okundu olarak işaretlendi: {}", notificationId);
+                    });
+        } catch (Exception e) {
+            log.error("Bildirim okundu olarak işaretlenirken hata: {}", e.getMessage(), e);
+        }
     }
-    
-    private String generateQuoteAcceptedMessage(Quote quote, Order order) {
-        return String.format("%s markasından teklif kabul edildi. Sipariş #%d oluşturuldu.", 
-                quote.getBrand().getName(), order.getId());
+
+    /**
+     * Kullanıcının okunmamış bildirimlerini getirme
+     */
+    public List<NotificationResponseDto> getUnreadNotifications(Long userId) {
+        try {
+            List<Notification> notifications = notificationRepository.findByTargetUserIdAndIsReadOrderByCreatedAtDesc(userId, false);
+            return notifications.stream()
+                    .map(this::mapToResponseDto)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Okunmamış bildirimler getirilirken hata: {}", e.getMessage(), e);
+            return List.of();
+        }
     }
-    
-    private String generateNewQuoteMessage(Quote quote) {
-        return String.format("%s markası için %s TL tutarında teklif oluşturuldu.", 
-                quote.getBrand().getName(), quote.getTotalPrice());
+
+    /**
+     * Kullanıcının tüm bildirimlerini getirme
+     */
+    public List<NotificationResponseDto> getAllNotifications(Long userId, int page, int size) {
+        try {
+            List<Notification> notifications = notificationRepository.findByTargetUserIdOrderByCreatedAtDesc(userId);
+            // Manual pagination
+            int start = page * size;
+            int end = Math.min(start + size, notifications.size());
+            if (start >= notifications.size()) {
+                return List.of();
+            }
+            return notifications.subList(start, end).stream()
+                    .map(this::mapToResponseDto)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Bildirimler getirilirken hata: {}", e.getMessage(), e);
+            return List.of();
+        }
     }
-    
-    private String generateNewBrandMessage(Brand brand) {
-        return String.format("Yeni marka kaydı: %s (%s)", 
-                brand.getName(), brand.getContactEmail());
+
+    /**
+     * Aylık temizlik - her ayın 1'i saat 00:00'da
+     */
+    @Scheduled(cron = "0 0 1 1 * *")
+    @Transactional
+    public void cleanupOldNotifications() {
+        try {
+            LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1);
+            long deletedCount = notificationRepository.deleteByCreatedAtBefore(oneMonthAgo);
+            log.info("{} adet eski bildirim temizlendi", deletedCount);
+        } catch (Exception e) {
+            log.error("Eski bildirimler temizlenirken hata: {}", e.getMessage(), e);
+        }
     }
-    
-    private String generateDeadlineApproachingMessage(Order order) {
-        return String.format("%s markası siparişi deadline yaklaşıyor (%s)", 
-                order.getQuote().getBrand().getName(), 
-                order.getDeadline());
+
+    /**
+     * Metadata serialization
+     */
+    private String serializeMetadata(Map<String, Object> metadata) {
+        if (metadata == null || metadata.isEmpty()) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(metadata);
+        } catch (JsonProcessingException e) {
+            log.warn("Metadata serialization hatası: {}", e.getMessage());
+            return null;
+        }
     }
-    
-    private String generateDeadlineExceededMessage(Order order) {
-        return String.format("%s markası siparişi deadline geçti! (%s)", 
-                order.getQuote().getBrand().getName(), 
-                order.getDeadline());
-    }
-    
-    private String generateFactoryAssignmentMessage(Order order) {
-        return String.format("%s markası siparişi fabrika atama bekliyor. Tutar: %s TL", 
-                order.getQuote().getBrand().getName(), 
-                order.getTotalPrice());
+
+    /**
+     * Entity to DTO mapping
+     */
+    private NotificationResponseDto mapToResponseDto(Notification notification) {
+        try {
+            Map<String, Object> metadata = null;
+            if (notification.getMetadata() != null) {
+                metadata = objectMapper.readValue(notification.getMetadata(), Map.class);
+            }
+
+            return NotificationResponseDto.builder()
+                    .id(notification.getId())
+                    .type(notification.getType())
+                    .priority(notification.getPriority())
+                    .title(notification.getTitle())
+                    .message(notification.getMessage())
+                    .targetUserId(notification.getTargetUserId())
+                    .factoryId(notification.getFactoryId())
+                    .entityType(notification.getEntityType())
+                    .entityId(notification.getEntityId())
+                    .isRead(notification.getIsRead())
+                    .createdAt(notification.getCreatedAt())
+                    .readAt(notification.getReadAt())
+                    .metadata(metadata)
+                    .build();
+        } catch (Exception e) {
+            log.error("Notification DTO mapping hatası: {}", e.getMessage(), e);
+            return null;
+        }
     }
 } 

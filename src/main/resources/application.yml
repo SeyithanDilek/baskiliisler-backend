@@ -103,6 +103,7 @@ logging:
 app:
   login-url: ${LOGIN_URL:http://localhost:3000/login}
   reset-password-url: ${RESET_PASSWORD_URL:http://localhost:3000/reset-password}
+  website-url: ${WEBSITE_URL:https://baskiliisler.com/}
 
 # Server configuration
 

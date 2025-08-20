@@ -12,6 +12,9 @@ import com.baskiliisler.backend.type.ProcessStatus;
 import com.baskiliisler.backend.type.QuoteStatus;
 import com.baskiliisler.backend.notification.service.NotificationService;
 import com.baskiliisler.backend.common.Role;
+import com.baskiliisler.backend.dto.NotificationRequest;
+import com.baskiliisler.backend.notification.type.NotificationType;
+import com.baskiliisler.backend.notification.type.NotificationPriority;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -85,9 +88,19 @@ public class QuoteService {
                 ProcessStatus.SAMPLE_LEFT,  // fromStatus
                 "{\"quoteId\":" + quote.getId() + "}");
 
-        // Notification gönder - hata durumunda ana işlem devam etsin
+        // Super admin'lere yeni teklif bildirimi gönder - hata durumunda ana işlem devam etsin
         try {
-            notificationService.notifyNewQuote(quote);
+            notificationService.notifyUsersByRole(Role.SUPER_ADMIN, 
+                NotificationRequest.builder()
+                    .type(NotificationType.NEW_QUOTE)
+                    .priority(NotificationPriority.MEDIUM)
+                    .title("Yeni Teklif Oluşturuldu")
+                    .message(String.format("'%s' markası için %s TL tutarında teklif oluşturuldu", 
+                        quote.getBrand().getName(), 
+                        quote.getTotalPrice()))
+                    .entityType("QUOTE")
+                    .entityId(quote.getId())
+                    .build());
         } catch (Exception e) {
             log.warn("Notification gönderilirken hata oluştu: {}", e.getMessage());
         }
@@ -170,9 +183,19 @@ public class QuoteService {
                 ProcessStatus.OFFER_SENT,    // fromStatus
                 "Teklif kabul edildi. Sipariş ID: " + order.getId());
         
-        // Notification gönder - hata durumunda ana işlem devam etsin
+        // Super admin'lere teklif kabul edildi bildirimi gönder - hata durumunda ana işlem devam etsin
         try {
-            notificationService.notifyQuoteAccepted(quote, order);
+            notificationService.notifyUsersByRole(Role.SUPER_ADMIN, 
+                NotificationRequest.builder()
+                    .type(NotificationType.QUOTE_CONVERTED_TO_ORDER)
+                    .priority(NotificationPriority.MEDIUM)
+                    .title("Teklif Siparişe Dönüştürüldü")
+                    .message(String.format("'%s' markasından teklif kabul edildi. Sipariş #%d oluşturuldu", 
+                        quote.getBrand().getName(), 
+                        order.getId()))
+                    .entityType("ORDER")
+                    .entityId(order.getId())
+                    .build());
         } catch (Exception e) {
             log.warn("Notification gönderilirken hata oluştu: {}", e.getMessage());
         }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
@@ -38,12 +39,21 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             String entityType, Long entityId);
     
     // Eski bildirimleri temizleme
-    @Modifying
-    @Query("DELETE FROM Notification n WHERE n.createdAt < :cutoff")
-    void deleteByCreatedAtBefore(@Param("cutoff") LocalDateTime cutoff);
-    
     // Tüm bildirimleri okunmuş olarak işaretle - Global
     @Modifying
     @Query("UPDATE Notification n SET n.isRead = true, n.readAt = :readAt WHERE n.isRead = false")
     void markAllAsRead(@Param("readAt") LocalDateTime readAt);
+
+    Optional<Notification> findByIdAndTargetUserId(Long id, Long targetUserId);
+    
+    List<Notification> findByTargetUserIdAndIsReadOrderByCreatedAtDesc(Long targetUserId, Boolean isRead);
+    
+    @Query("SELECT n FROM Notification n WHERE n.targetUserId = :targetUserId ORDER BY n.createdAt DESC")
+    List<Notification> findByTargetUserIdOrderByCreatedAtDesc(@Param("targetUserId") Long targetUserId);
+    
+
+    
+    @Modifying
+    @Query("DELETE FROM Notification n WHERE n.createdAt < :date")
+    long deleteByCreatedAtBefore(@Param("date") LocalDateTime date);
 } 

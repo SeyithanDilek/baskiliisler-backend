@@ -16,6 +16,10 @@ import com.baskiliisler.backend.type.ProcessStatus;
 import com.baskiliisler.backend.notification.service.NotificationService;
 import com.baskiliisler.backend.config.SecurityUtil;
 import com.baskiliisler.backend.common.Role;
+import com.baskiliisler.backend.service.EmailService;
+import com.baskiliisler.backend.dto.NotificationRequest;
+import com.baskiliisler.backend.notification.type.NotificationType;
+import com.baskiliisler.backend.notification.type.NotificationPriority;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Validation;
@@ -39,6 +43,7 @@ public class BrandService {
     private final BrandProcessService brandProcessService;
     private final BrandProcessHistoryService brandProcessHistoryService;
     private final NotificationService notificationService;
+    private final EmailService emailService;
     private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private final Validator validator = factory.getValidator();
 
@@ -97,11 +102,37 @@ public class BrandService {
                 null,
                 "{\"brandId\":" + brand.getId() + "}");
 
-        // Notification gönder - hata durumunda ana işlem devam etsin
+        // Super admin'lere yeni marka bildirimi gönder - hata durumunda ana işlem devam etsin
         try {
-            notificationService.notifyNewBrand(brand);
+            User currentUser = getCurrentUser();
+            notificationService.notifyUsersByRole(Role.SUPER_ADMIN, 
+                NotificationRequest.builder()
+                    .type(NotificationType.NEW_BRAND)
+                    .priority(NotificationPriority.LOW)
+                    .title("Yeni Marka Eklendi")
+                    .message(String.format("'%s' markası %s bayisinden %s tarafından eklendi", 
+                        brand.getName(), 
+                        brand.getDealer().getName(), 
+                        currentUser.getName()))
+                    .entityType("BRAND")
+                    .entityId(brand.getId())
+                    .build());
         } catch (Exception e) {
             log.warn("Notification gönderilirken hata oluştu: {}", e.getMessage());
+        }
+        
+        // Yeni müşteri hoşgeldiniz maili gönder - hata durumunda ana işlem devam etsin
+        try {
+            if (brand.getContactEmail() != null && !brand.getContactEmail().isEmpty()) {
+                emailService.sendNewCustomerWelcomeEmail(
+                    brand.getContactEmail(), 
+                    brand.getName(), 
+                    brand.getName()
+                );
+                log.info("Yeni müşteri hoşgeldiniz maili gönderildi: {}", brand.getContactEmail());
+            }
+        } catch (Exception e) {
+            log.warn("Yeni müşteri hoşgeldiniz maili gönderilirken hata oluştu: {}", e.getMessage());
         }
         
         return brand;
